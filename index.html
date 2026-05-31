@@ -505,7 +505,7 @@
                         <span class="font-semibold text-slate-900 focus:outline-none cursor-text px-0.5" contenteditable="true" id="preview-dia-1" oninput="syncDateFromPreview(this, 'dia', 1)" onkeydown="if(event.keyCode==13) event.preventDefault();"></span>
                         <span>de</span>
                         <span class="font-semibold text-slate-900 focus:outline-none cursor-text px-0.5" contenteditable="true" id="preview-mes-1" oninput="syncDateFromPreview(this, 'mes', 1)" onkeydown="if(event.keyCode==13) event.preventDefault();"></span>
-                        <span>de 202</span>
+                        <span>de</span>
                         <span class="font-semibold text-slate-900 focus:outline-none cursor-text px-0.5" contenteditable="true" id="preview-anio-1" oninput="syncDateFromPreview(this, 'anio', 1)" onkeydown="if(event.keyCode==13) event.preventDefault();"></span>
                     </div>
                 </div>
@@ -570,7 +570,7 @@
                         <span class="font-semibold text-slate-900 focus:outline-none cursor-text px-0.5" contenteditable="true" id="preview-dia-2" oninput="syncDateFromPreview(this, 'dia', 2)" onkeydown="if(event.keyCode==13) event.preventDefault();"></span>
                         <span>de</span>
                         <span class="font-semibold text-slate-900 focus:outline-none cursor-text px-0.5" contenteditable="true" id="preview-mes-2" oninput="syncDateFromPreview(this, 'mes', 2)" onkeydown="if(event.keyCode==13) event.preventDefault();"></span>
-                        <span>de 202</span>
+                        <span>de</span>
                         <span class="font-semibold text-slate-900 focus:outline-none cursor-text px-0.5" contenteditable="true" id="preview-anio-2" oninput="syncDateFromPreview(this, 'anio', 2)" onkeydown="if(event.keyCode==13) event.preventDefault();"></span>
                     </div>
                 </div>
@@ -652,7 +652,7 @@
                 presentado: '',
                 dia: '',
                 mes: '',
-                anio: '6',
+                anio: '26',
                 firmante_nombre: 'María Isabel Irigoyen Durán',
                 firmante_cargo: 'TESORERA',
                 firmante_periodo: 'Directorio 2026 - 2029'
@@ -665,7 +665,7 @@
                 presentado: '',
                 dia: '',
                 mes: '',
-                anio: '6',
+                anio: '26',
                 firmante_nombre: 'María Isabel Irigoyen Durán',
                 firmante_cargo: 'TESORERA',
                 firmante_periodo: 'Directorio 2026 - 2029'
@@ -727,16 +727,15 @@
             const hoy = new Date();
             const diaStr = String(hoy.getDate());
             const mesStr = meses[hoy.getMonth()];
-            const anioCompleto = String(hoy.getFullYear());
-            const anioStr = anioCompleto.charAt(anioCompleto.length - 1);
+            const anioCompleto = String(hoy.getFullYear()); // Año completo de 4 dígitos
 
             state.copia1.dia = diaStr;
             state.copia1.mes = mesStr;
-            state.copia1.anio = anioStr;
+            state.copia1.anio = anioCompleto;
 
             state.copia2.dia = diaStr;
             state.copia2.mes = mesStr;
-            state.copia2.anio = anioStr;
+            state.copia2.anio = anioCompleto;
 
             actualizarInputsDesdeEstado();
         }
@@ -1217,16 +1216,17 @@
             const hoy = new Date();
             const diaStr = String(hoy.getDate());
             const mesStr = meses[hoy.getMonth()];
+            const anioStr = String(hoy.getFullYear());
 
             state.copia1 = {
                 nro: '482/26',
                 nombre: 'CARLOS ALBERTO RETAMALES GÓMEZ',
-                rut: '14.590.312-K',
+                rut: '12.345.678-9',
                 direccion: 'Pasaje Los Alerces N° 1240, Sector Alto de Cerro Amarillo, Concepción',
                 presentado: 'Ilustre Municipalidad de Concepción para subsidio habitacional',
                 dia: diaStr,
                 mes: mesStr,
-                anio: '6',
+                anio: anioStr,
                 firmante_nombre: 'María Isabel Irigoyen Durán',
                 firmante_cargo: 'TESORERA',
                 firmante_periodo: 'Directorio 2026 - 2029'
@@ -1240,7 +1240,7 @@
                 presentado: 'Dirección del Trabajo para acreditación de cargas familiares',
                 dia: diaStr,
                 mes: mesStr,
-                anio: '6',
+                anio: anioStr,
                 firmante_nombre: 'María Isabel Irigoyen Durán',
                 firmante_cargo: 'TESORERA',
                 firmante_periodo: 'Directorio 2026 - 2029'
@@ -1270,7 +1270,7 @@
                 presentado: '',
                 dia: '',
                 mes: '',
-                anio: '6',
+                anio: '', 
                 firmante_nombre: 'María Isabel Irigoyen Durán',
                 firmante_cargo: 'TESORERA',
                 firmante_periodo: 'Directorio 2026 - 2029'
@@ -1283,214 +1283,7 @@
 
             actualizarInputsDesdeEstado();
             renderPreviews();
-            mostrarNotificacion("Formulario vaciado para rellenar en blanco.", "success");
-        }
-
-        function guardarEnHistorial() {
-            let guardadoSatis = false;
-            
-            // URL de tu Web App de Google Apps Script
-            const GOOGLE_SCRIPT_URL = "TU_URL_AQUI"; 
-
-            // Función interna para enviar a Google Sheets
-            const enviarAGoogle = async (data) => {
-                try {
-                    await fetch(GOOGLE_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        cache: 'no-cache',
-                        body: JSON.stringify(data)
-                    });
-                } catch (e) {
-                    console.error("Error enviando a Sheets", e);
-                }
-            };
-
-            if (state.copia1.nombre && state.copia1.rut) {
-                const extras1 = state.customLines.map(l => `${l.label} ${l.value || ''}`).join(' | ');
-                const nuevo1 = {
-                    id: crypto.randomUUID(),
-                    fecha_emision: `${state.copia1.dia} de ${state.copia1.mes} de 202${state.copia1.anio}`,
-                    nro: state.copia1.nro,
-                    nombre: state.copia1.nombre,
-                    rut: state.copia1.rut,
-                    direccion: state.copia1.direccion,
-                    presentado: state.copia1.presentado,
-                    extras: extras1
-                };
-                databaseMock.unshift(nuevo1);
-                enviarAGoogle(nuevo1); // Envío a la nube
-                guardadoSatis = true;
-            }
-
-            if (state.copia2.nombre && state.copia2.rut) {
-                const extras2 = state.customLines.map(l => `${l.label} ${l.value2 || ''}`).join(' | ');
-                const nuevo2 = {
-                    id: crypto.randomUUID(),
-                    fecha_emision: `${state.copia2.dia} de ${state.copia2.mes} de 202${state.copia2.anio}`,
-                    nro: state.copia2.nro,
-                    nombre: state.copia2.nombre,
-                    rut: state.copia2.rut,
-                    direccion: state.copia2.direccion,
-                    presentado: state.copia2.presentado,
-                    extras: extras2
-                };
-                databaseMock.unshift(nuevo2);
-                guardadoSatis = true;
-            }
-
-            if (!guardadoSatis) {
-                mostrarNotificacion("Introduce al menos un Nombre y RUT en cualquiera de las copias para guardar.", "error");
-                return;
-            }
-
-            localStorage.setItem('historial_certificados', JSON.stringify(databaseMock));
-            renderHistorial();
-            mostrarNotificacion("¡Certificados guardados en el historial local!");
-        }
-
-        function cargarHistorialLocal() {
-            const raw = localStorage.getItem('historial_certificados');
-            if (raw) {
-                databaseMock = JSON.parse(raw);
-                renderHistorial();
-            }
-        }
-
-        function renderHistorial(listaFiltrada = null) {
-            const items = listaFiltrada || databaseMock;
-            const container = document.getElementById('historial-list');
-            
-            if (items.length === 0) {
-                container.innerHTML = `<div class="p-3 text-center text-slate-500">Ningún certificado guardado aún.</div>`;
-                return;
-            }
-
-            container.innerHTML = items.map(reg => `
-                <div class="p-3 hover:bg-slate-900 flex flex-col gap-1 transition">
-                    <div class="flex justify-between items-start">
-                        <span class="font-bold text-slate-200 text-xs">${reg.nombre}</span>
-                        <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded">N° ${reg.nro || 'S/N'}</span>
-                    </div>
-                    <div class="flex justify-between text-[11px] text-slate-400">
-                        <span>RUT: ${reg.rut}</span>
-                        <span>${reg.fecha_emision}</span>
-                    </div>
-                    <div class="text-[10px] text-slate-500 truncate">${reg.direccion || ''}</div>
-                    ${reg.extras ? `<div class="text-[9px] text-emerald-500/80 italic font-mono truncate">${reg.extras}</div>` : ''}
-                    <div class="flex justify-end gap-2 mt-1.5 pt-1.5 border-t border-slate-800/40">
-                        <button onclick="cargarRegistroEnPantalla('${reg.id}', 1)" class="text-[10px] text-emerald-400 hover:underline">Cargar en Superior (C1)</button>
-                        <button onclick="cargarRegistroEnPantalla('${reg.id}', 2)" class="text-[10px] text-amber-400 hover:underline">Cargar en Inferior (C2)</button>
-                        <button onclick="pedirConfirmacionEliminar('${reg.id}')" class="text-[10px] text-rose-400 hover:underline">Eliminar</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function buscarHistorial(query) {
-            const q = query.toLowerCase();
-            const filtrados = databaseMock.filter(item => 
-                item.nombre.toLowerCase().includes(q) || 
-                item.rut.toLowerCase().includes(q) ||
-                (item.nro && item.nro.toLowerCase().includes(q))
-            );
-            renderHistorial(filtrados);
-        }
-
-        // Permite cargar de manera independiente un registro guardado en la mitad deseada
-        function cargarRegistroEnPantalla(id, copiaId) {
-            const reg = databaseMock.find(item => item.id === id);
-            if (!reg) return;
-
-            const datosDestino = copiaId === 1 ? state.copia1 : state.copia2;
-
-            datosDestino.nombre = reg.nombre;
-            datosDestino.rut = reg.rut;
-            datosDestino.nro = reg.nro;
-            datosDestino.direccion = reg.direccion || "";
-            datosDestino.presentado = reg.presentado;
-            
-            if (reg.extras) {
-                state.customLines = reg.extras.split(' | ').map(item => {
-                    const partes = item.split(': ');
-                    const label = partes[0] ? (partes[0].endsWith(':') ? partes[0] : partes[0] + ':') : 'Fila:';
-                    const value = partes[1] || '';
-                    return {
-                        id: crypto.randomUUID(),
-                        label: label,
-                        value: copiaId === 1 ? value : '',
-                        value2: copiaId === 2 ? value : ''
-                    };
-                });
-                guardarLineasEnStorage();
-            }
-
-            const partesFecha = reg.fecha_emision.split(" ");
-            if (partesFecha.length >= 5) {
-                datosDestino.dia = partesFecha[0];
-                datosDestino.mes = partesFecha[2];
-                datosDestino.anio = partesFecha[4].charAt(partesFecha[4].length - 1);
-            }
-
-            actualizarInputsDesdeEstado();
-            renderPreviews();
-            mostrarNotificacion(`Registro cargado en la Copia ${copiaId === 1 ? 'Superior (C1)' : 'Inferior (C2)'}.`);
-        }
-
-        function pedirConfirmacionEliminar(id) {
-            idParaEliminar = id;
-            const modal = document.getElementById('modal-confirmacion');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function cerrarModal() {
-            const modal = document.getElementById('modal-confirmacion');
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-            idParaEliminar = null;
-        }
-
-        function confirmarEliminacion() {
-            if (idParaEliminar) {
-                databaseMock = databaseMock.filter(item => item.id !== idParaEliminar);
-                localStorage.setItem('historial_certificados', JSON.stringify(databaseMock));
-                renderHistorial();
-                mostrarNotificacion("Registro eliminado exitosamente del historial local.", "success");
-            }
-            cerrarModal();
-        }
-
-        function exportarCSV() {
-            if (databaseMock.length === 0) {
-                mostrarNotificacion("No hay registros en el historial para exportar.", "error");
-                return;
-            }
-
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-            csvContent += "Nro de Certificado,Nombre Solicitante,RUT,Dirección,Presentado Ante,Campos Extras,Fecha de Emisión\n";
-
-            databaseMock.forEach(reg => {
-                const fila = [
-                    `"${reg.nro || ''}"`,
-                    `"${reg.nombre.replace(/"/g, '""')}"`,
-                    `"${reg.rut}"`,
-                    `"${(reg.direccion || '').replace(/"/g, '""')}"`,
-                    `"${reg.presentado.replace(/"/g, '""')}"`,
-                    `"${(reg.extras || '').replace(/"/g, '""')}"`,
-                    `"${reg.fecha_emision}"`
-                ];
-                csvContent += fila.join(",") + "\n";
-            });
-
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "historial_certificados_residencia.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            mostrarNotificacion("CSV descargado. ¡Listo para Google Sheets!");
+            mostrarNotificacion("Campos limpiados correctamente.");
         }
     </script>
 </body>
