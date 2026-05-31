@@ -14,11 +14,13 @@
         }
         
         .font-cert-title {
-            font-family: 'Cinzel', serif;
+            font-family: 'Times New Roman', Times, Georgia, serif !important;
+            line-height: 1.5 !important;
         }
         
         .font-cert-body {
-            font-family: 'Playfair Display', serif;
+            font-family: 'Times New Roman', Times, Georgia, serif !important;
+            line-height: 1.5 !important;
         }
 
         /* Contenedor de visualización A4 en pantalla */
@@ -46,12 +48,12 @@
             box-sizing: border-box;
         }
 
-        /* Cada mitad exacta es de 148.5mm */
+        /* Cada mitad exacta es de 148.5mm con padding optimizado para interlineado 1.5 */
         .half-sheet {
             height: 148.5mm;
             max-height: 148.5mm;
             width: 210mm;
-            padding: 12mm 16mm 10mm 16mm;
+            padding: 8mm 16mm 8mm 16mm;
             box-sizing: border-box;
             position: relative;
             display: flex;
@@ -59,6 +61,14 @@
             justify-content: space-between;
             overflow: hidden;
             color: #000000;
+            font-family: 'Times New Roman', Times, Georgia, serif !important;
+        }
+
+        /* Forzar Times New Roman e Interlineado de 1.5 de manera global en las hojas del certificado */
+        .half-sheet,
+        .half-sheet * {
+            font-family: 'Times New Roman', Times, Georgia, serif !important;
+            line-height: 1.5 !important;
         }
 
         /* Línea de corte intermitente del medio de la hoja */
@@ -71,8 +81,51 @@
             z-index: 50;
         }
 
+        /* Indicador visual de tijeras en el medio (solo visible en pantalla) */
+        .cut-indicator {
+            position: absolute;
+            top: 148.5mm;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ffffff;
+            padding: 2px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 9999px;
+            color: #475569;
+            font-size: 10px;
+            font-family: 'Inter', sans-serif !important;
+            line-height: 1.2 !important;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 51;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            pointer-events: none;
+        }
+
+        /* Marcas sutiles de imprenta negras para guiar la guillotina (se imprimen en los bordes) */
+        .cut-mark-left, .cut-mark-right {
+            position: absolute;
+            top: 148.5mm;
+            width: 8mm;
+            height: 0;
+            border-top: 1.2px solid #000000;
+            z-index: 52;
+            opacity: 0.8;
+        }
+        .cut-mark-left {
+            left: 0;
+        }
+        .cut-mark-right {
+            right: 0;
+        }
+
         /* Reglas optimizadas para el proceso de impresión física */
         @media print {
+            @page {
+                size: A4; /* Configura estrictamente el tamaño de página A4 (8.3 x 11.7 pulgadas) */
+                margin: 0; /* Remueve márgenes predeterminados del navegador */
+            }
             body {
                 background: white !important;
                 margin: 0 !important;
@@ -99,6 +152,10 @@
             .cut-line {
                 border-top-color: #cbd5e1 !important;
                 opacity: 0.5;
+            }
+            .cut-mark-left, .cut-mark-right {
+                border-top-color: #000000 !important;
+                opacity: 0.4 !important;
             }
         }
     </style>
@@ -139,6 +196,12 @@
                         </div>
                         <input type="file" id="input-logo" class="hidden" accept="image/*" onchange="cargarLogo(event)" />
                     </label>
+                </div>
+                <div class="space-y-1.5 pt-2 border-t border-slate-800/60">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-300 font-medium">Tamaño del Logo: <span id="logo-size-value">68</span>px</span>
+                    </div>
+                    <input type="range" id="input-logo-size" min="40" max="110" value="68" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
                 </div>
             </div>
 
@@ -313,8 +376,13 @@
     <div id="preview-container" class="flex-1">
         <div id="a4-sheet" class="a4-sheet">
             
-            <!-- Línea de corte físico intermitente (solo visible en pantalla o guía tenue en papel) -->
+            <!-- Líneas y marcas de corte físico (A4 dividido a la mitad exacta de 148.5mm) -->
             <div class="cut-line"></div>
+            <div class="cut-mark-left"></div>
+            <div class="cut-mark-right"></div>
+            <div class="cut-indicator no-print">
+                <span>✂️ Cortar por aquí (Mitad exacta de hoja A4 - 148.5mm)</span>
+            </div>
 
             <!-- COPIA SUPERIOR -->
             <div class="half-sheet" id="sheet-copia-1">
@@ -322,14 +390,14 @@
                 <div class="flex justify-between items-start w-full">
                     
                     <!-- Logo / Escudo -->
-                    <div class="flex items-center gap-1.5" id="logo-container-1">
+                    <div class="flex items-center" id="logo-container-1" style="width: 68px; height: 68px;">
                         <!-- El SVG por defecto o la imagen subida se renderizarán aquí de forma dinámica -->
                     </div>
 
-                    <!-- Numerador superior derecho -->
-                    <div class="flex items-end font-cert-body text-xl font-bold mt-2">
-                        <span>N°</span>
-                        <div class="w-24 border-b border-black text-center font-cert-title tracking-wider pb-0.5 ml-1 text-slate-800 min-h-[1.5rem]" id="preview-nro-1"></div>
+                    <!-- Numerador superior derecho sin doble raya -->
+                    <div class="flex items-baseline text-lg font-bold mt-2">
+                        <span class="mr-1 text-[16px]">N°</span>
+                        <span class="w-28 border-b border-black text-center font-bold tracking-wider px-1 text-[16px] min-h-[1.4rem] inline-block" id="preview-nro-1"></span>
                     </div>
                 </div>
 
@@ -415,14 +483,14 @@
                 <div class="flex justify-between items-start w-full">
                     
                     <!-- Logo / Escudo -->
-                    <div class="flex items-center gap-1.5" id="logo-container-2">
+                    <div class="flex items-center" id="logo-container-2" style="width: 68px; height: 68px;">
                         <!-- El SVG por defecto o la imagen subida se renderizarán aquí de forma dinámica -->
                     </div>
 
-                    <!-- Numerador derecho -->
-                    <div class="flex items-end font-cert-body text-xl font-bold mt-2">
-                        <span>N°</span>
-                        <div class="w-24 border-b border-black text-center font-cert-title tracking-wider pb-0.5 ml-1 text-slate-800 min-h-[1.5rem]" id="preview-nro-2"></div>
+                    <!-- Numerador derecho sin doble raya -->
+                    <div class="flex items-baseline text-lg font-bold mt-2">
+                        <span class="mr-1 text-[16px]">N°</span>
+                        <span class="w-28 border-b border-black text-center font-bold tracking-wider px-1 text-[16px] min-h-[1.4rem] inline-block" id="preview-nro-2"></span>
                     </div>
                 </div>
 
@@ -505,13 +573,33 @@
         </div>
     </div>
 
+    <!-- Notificaciones flotantes (Toasts) -->
+    <div id="custom-toast" class="fixed bottom-5 right-5 bg-slate-900 border border-transparent text-transparent px-4 py-3 rounded-xl shadow-none flex items-center gap-2 z-[9999] transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none">
+        <div id="toast-icon"></div>
+        <span id="toast-text" class="text-xs font-semibold"></span>
+    </div>
+
+    <!-- Modal de Confirmación de Borrado -->
+    <div id="modal-confirmacion" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-[99999] no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl mx-4 transform transition-all">
+            <div class="flex items-center gap-3 text-amber-500 mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <h4 class="font-bold text-lg text-slate-100">¿Eliminar Registro?</h4>
+            </div>
+            <p class="text-slate-400 text-sm mb-6 leading-relaxed">Esta acción quitará al vecino de tu lista del historial local. No podrás recuperarlo.</p>
+            <div class="flex justify-end gap-3">
+                <button onclick="cerrarModal()" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 rounded-lg transition">Cancelar</button>
+                <button onclick="confirmarEliminacion()" class="px-4 py-2 text-xs font-semibold text-slate-950 bg-rose-500 hover:bg-rose-400 rounded-lg transition">Confirmar Eliminar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Integración con Firebase para almacenamiento de datos -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDocs, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Estructura de configuración segura con fallback en LocalStorage por si se ejecuta offline
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'certificado-residencia-app';
         let db = null;
         let auth = null;
@@ -541,10 +629,10 @@
         let activeTab = 1;
         let base64Logo = ""; // Almacenará el logo personalizado si se sube uno
         let databaseMock = []; // Respaldo local/nube del historial de certificados
+        let idParaEliminar = null; // Almacén del registro marcado para borrado
 
-        // SVG del logo original de la Junta de Vecinos
         const defaultLogoSVG = `
-            <svg viewBox="0 0 120 120" class="w-[68px] h-[68px]">
+            <svg viewBox="0 0 120 120" style="width: 100%; height: 100%;">
                 <circle cx="60" cy="60" r="56" fill="white" stroke="#166534" stroke-width="2.5" />
                 <circle cx="60" cy="60" r="52.5" fill="none" stroke="#166534" stroke-width="0.75" />
                 <path id="top-path" d="M 17 60 A 43 43 0 0 1 103 60" fill="none" />
@@ -577,6 +665,7 @@
         const state = {
             sync: true,
             autoIncrement: true,
+            logoSize: 68,
             copia1: {
                 nro: '',
                 nombre: '',
@@ -619,6 +708,27 @@
         });
 
         window.addEventListener('resize', adjustScale);
+
+        // Sistema dinámico de Toast de reemplazo de Alerts
+        function mostrarNotificacion(mensaje, tipo = 'success') {
+            const toast = document.getElementById('custom-toast');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+            
+            toastText.textContent = mensaje;
+            
+            if (tipo === 'success') {
+                toast.className = "fixed bottom-5 right-5 bg-slate-900 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 z-[9999] transition-all duration-300 transform translate-y-0 opacity-100";
+                toastIcon.innerHTML = `<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>`;
+            } else {
+                toast.className = "fixed bottom-5 right-5 bg-slate-900 border border-rose-500/30 text-rose-400 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 z-[9999] transition-all duration-300 transform translate-y-0 opacity-100";
+                toastIcon.innerHTML = `<svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
+            }
+            
+            setTimeout(() => {
+                toast.className = "fixed bottom-5 right-5 bg-slate-900 border border-transparent text-transparent px-4 py-3 rounded-xl shadow-none flex items-center gap-2 z-[9999] transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none";
+            }, 4000);
+        }
 
         function adjustScale() {
             const previewEl = document.getElementById('a4-sheet');
@@ -792,6 +902,17 @@
 
             // El número inferior siempre empieza bloqueado por el auto-incremento inicial
             inputNroInf.disabled = state.autoIncrement && state.sync;
+
+            const logoSizeSlider = document.getElementById('input-logo-size');
+            const logoSizeValue = document.getElementById('logo-size-value');
+            
+            logoSizeSlider.addEventListener('input', (e) => {
+                const size = e.target.value;
+                state.logoSize = parseInt(size);
+                logoSizeValue.textContent = size;
+                localStorage.setItem('junta_logo_size', size);
+                renderPreviews();
+            });
         }
 
         function switchTab(tabId) {
@@ -824,7 +945,6 @@
             return formateado + "-" + dv;
         }
 
-        // Carga el archivo del Logo, lo procesa y lo guarda en Base64
         function cargarLogo(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -834,6 +954,7 @@
                 base64Logo = e.target.result;
                 localStorage.setItem('junta_logo_personalizado', base64Logo);
                 document.getElementById('btn-remove-logo').classList.remove('hidden');
+                mostrarNotificacion("Logo subido correctamente.", "success");
                 renderPreviews();
             };
             reader.readAsDataURL(file);
@@ -844,6 +965,7 @@
             localStorage.removeItem('junta_logo_personalizado');
             document.getElementById('btn-remove-logo').classList.add('hidden');
             document.getElementById('input-logo').value = "";
+            mostrarNotificacion("Logo personalizado removido.", "success");
             renderPreviews();
         }
 
@@ -853,19 +975,36 @@
                 base64Logo = storedLogo;
                 document.getElementById('btn-remove-logo').classList.remove('hidden');
             }
+
+            // Cargar tamaño guardado del logo
+            const storedSize = localStorage.getItem('junta_logo_size');
+            if (storedSize) {
+                state.logoSize = parseInt(storedSize);
+                document.getElementById('input-logo-size').value = storedSize;
+                document.getElementById('logo-size-value').textContent = storedSize;
+            }
         }
 
         function renderPreviews() {
+            const container1 = document.getElementById('logo-container-1');
+            const container2 = document.getElementById('logo-container-2');
+            if (container1 && container2) {
+                container1.style.width = `${state.logoSize}px`;
+                container1.style.height = `${state.logoSize}px`;
+                container2.style.width = `${state.logoSize}px`;
+                container2.style.height = `${state.logoSize}px`;
+            }
+
             // Decidir qué logo colocar
             const logoContent = base64Logo 
-                ? `<img src="${base64Logo}" class="w-[68px] h-[68px] object-contain rounded-md" alt="Logo Junta" onerror="removerLogoPersonalizado()">` 
+                ? `<img src="${base64Logo}" style="width: 100%; height: 100%;" class="object-contain rounded-md" alt="Logo Junta" onerror="removerLogoPersonalizado()">` 
                 : defaultLogoSVG;
 
             document.getElementById('logo-container-1').innerHTML = logoContent;
             document.getElementById('logo-container-2').innerHTML = logoContent;
 
             // Actualizar Copia 1 (Superior)
-            document.getElementById('preview-nro-1').textContent = state.copia1.nro || "_______";
+            document.getElementById('preview-nro-1').textContent = state.copia1.nro || "";
             document.getElementById('preview-nombre-1').textContent = state.copia1.nombre || "";
             document.getElementById('preview-rut-1').textContent = state.copia1.rut || "";
             document.getElementById('preview-direccion1-1').textContent = state.copia1.direccion1 || "";
@@ -879,7 +1018,7 @@
             document.getElementById('preview-firmante-periodo-1').textContent = state.copia1.firmante_periodo;
 
             // Actualizar Copia 2 (Inferior)
-            document.getElementById('preview-nro-2').textContent = state.copia2.nro || "_______";
+            document.getElementById('preview-nro-2').textContent = state.copia2.nro || "";
             document.getElementById('preview-nombre-2').textContent = state.copia2.nombre || "";
             document.getElementById('preview-rut-2').textContent = state.copia2.rut || "";
             document.getElementById('preview-direccion1-2').textContent = state.copia2.direccion1 || "";
@@ -893,7 +1032,6 @@
             document.getElementById('preview-firmante-periodo-2').textContent = state.copia2.firmante_periodo;
         }
 
-        // Llenado de base de ejemplo
         function cargarEjemplo() {
             const hoy = new Date();
             const diaStr = String(hoy.getDate());
@@ -931,6 +1069,7 @@
 
             cargarInputsDesdeEstado();
             renderPreviews();
+            mostrarNotificacion("Datos de prueba cargados exitosamente.");
         }
 
         function limpiarCampos() {
@@ -954,14 +1093,14 @@
 
             cargarInputsDesdeEstado();
             renderPreviews();
+            mostrarNotificacion("Formulario vaciado correctamente.", "success");
         }
 
         // --- SISTEMA DE ALMACENAMIENTO DE DATOS ---
 
-        // Guarda el certificado en el historial local y en Firebase si está configurado
         function guardarEnHistorial() {
             if (!state.copia1.nombre || !state.copia1.rut) {
-                alert("Debes rellenar al menos el nombre y RUT de la Copia Superior para guardarlo.");
+                mostrarNotificacion("Debes rellenar al menos el Nombre y RUT de la Copia Superior.", "error");
                 return;
             }
 
@@ -994,7 +1133,7 @@
             // Guardar local
             localStorage.setItem('historial_certificados', JSON.stringify(databaseMock));
             renderHistorial();
-            alert("¡Registro guardado con éxito!");
+            mostrarNotificacion("¡Registro guardado con éxito!");
         }
 
         function cargarHistorialLocal() {
@@ -1025,9 +1164,9 @@
                         <span>${reg.fecha_emision}</span>
                     </div>
                     <div class="text-[10px] text-slate-500 truncate">${reg.direccion}</div>
-                    <div class="flex justify-end gap-2 mt-1.5 pt-1.5 border-t border-slate-900">
+                    <div class="flex justify-end gap-2 mt-1.5 pt-1.5 border-t border-slate-800/40">
                         <button onclick="cargarRegistroEnPantalla('${reg.id}')" class="text-[10px] text-emerald-400 hover:underline">Cargar datos</button>
-                        <button onclick="eliminarRegistro('${reg.id}')" class="text-[10px] text-rose-400 hover:underline">Eliminar</button>
+                        <button onclick="pedirConfirmacionEliminar('${reg.id}')" class="text-[10px] text-rose-400 hover:underline">Eliminar</button>
                     </div>
                 </div>
             `).join('');
@@ -1072,20 +1211,38 @@
 
             cargarInputsDesdeEstado();
             renderPreviews();
+            mostrarNotificacion("Vecino cargado en pantalla.");
         }
 
-        function eliminarRegistro(id) {
-            if (confirm("¿Estás seguro de eliminar este registro del historial?")) {
-                databaseMock = databaseMock.filter(item => item.id !== id);
+        // Sistema de diálogo modal seguro libre de dialog-native confirm()
+        function pedirConfirmacionEliminar(id) {
+            idParaEliminar = id;
+            const modal = document.getElementById('modal-confirmacion');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function cerrarModal() {
+            const modal = document.getElementById('modal-confirmacion');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            idParaEliminar = null;
+        }
+
+        function confirmarEliminacion() {
+            if (idParaEliminar) {
+                databaseMock = databaseMock.filter(item => item.id !== idParaEliminar);
                 localStorage.setItem('historial_certificados', JSON.stringify(databaseMock));
                 renderHistorial();
+                mostrarNotificacion("Registro eliminado exitosamente.", "success");
             }
+            cerrarModal();
         }
 
         // Exportación directa a Google Sheets (Formato CSV compatible universal)
         function exportarCSV() {
             if (databaseMock.length === 0) {
-                alert("No hay ningún certificado registrado en el historial para exportar.");
+                mostrarNotificacion("No hay registros en el historial para exportar.", "error");
                 return;
             }
 
@@ -1113,6 +1270,7 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            mostrarNotificacion("CSV descargado. ¡Listo para Google Sheets!");
         }
     </script>
 </body>
