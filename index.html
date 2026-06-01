@@ -756,49 +756,7 @@
             mostrarNotificacion("Fechas sincronizadas con el reloj de tu sistema.");
         }
 
-            setupEventListeners() {
-                // Vincular inputs de Copia 1 (Superior) - Ahora sincronizan automáticamente la Copia 2
-                const bindingsCopia1 = [
-                    { id: 'input-nombre-1', key: 'nombre' },
-                    { id: 'input-rut-1', key: 'rut', format: true },
-                    { id: 'input-direccion-1', key: 'direccion' },
-                    { id: 'input-presentado-1', key: 'presentado' },
-                    { id: 'input-dia-1', key: 'dia' },
-                    { id: 'input-mes-1', key: 'mes' },
-                    { id: 'input-anio-1', key: 'anio' }
-                ];
-
-                bindingsCopia1.forEach(item => {
-                    const el = document.getElementById(item.id);
-                    el.addEventListener('input', (e) => {
-                        let val = e.target.value;
-                        if (item.format) {
-                            val = formatearRut(val);
-                            el.value = val;
-                        }
-                        
-                        // Actualizar estado 1
-                        state.copia1[item.key] = val;
-                        
-                        // Sincronizar automáticamente con estado 2
-                        state.copia2[item.key] = val;
-                        const el2 = document.getElementById(item.id.replace('-1', '-2'));
-                        if (el2) el2.value = val;
-
-                        renderPreviews();
-                    });
-                });
-
-                // Número Copia 1 (Superior) sincroniza con Copia 2 sin incremento
-                document.getElementById('input-nro-1').addEventListener('input', (e) => {
-                    const val = e.target.value;
-                    state.copia1.nro = val;
-                    state.copia2.nro = val;
-                    document.getElementById('input-nro-2').value = val;
-                    renderPreviews();
-                });
-
-                // Vincular inputs de Copia 2 (Inferior) - Se mantienen independientes por si se requiere ajuste fino, 
+        // --- CORRECCIÓN: Función unificada de eventos ---
         function setupEventListeners() {
             // Vincular inputs de Copia 1 (Superior) - Sincronizan automáticamente la Copia 2
             const bindingsCopia1 = [
@@ -827,30 +785,37 @@
             });
 
             // Número Copia 1 (Superior) con auto-incremento inteligente
-            document.getElementById('input-nro-1').addEventListener('input', (e) => {
-                const val = e.target.value;
-                state.copia1.nro = val;
-                if (state.autoIncrement) {
-                    const match = val.match(/^(\d+)(\/.*)?$/);
-                    if (match) {
-                        const num = parseInt(match[1]);
-                        const suffix = match[2] || "";
-                        state.copia2.nro = (num + 1) + suffix;
+            const inputNro1 = document.getElementById('input-nro-1');
+            if (inputNro1) {
+                inputNro1.addEventListener('input', (e) => {
+                    const val = e.target.value;
+                    state.copia1.nro = val;
+                    if (state.autoIncrement) {
+                        const match = val.match(/^(\d+)(\/.*)?$/);
+                        if (match) {
+                            const num = parseInt(match[1]);
+                            const suffix = match[2] || "";
+                            state.copia2.nro = (num + 1) + suffix;
+                        } else {
+                            state.copia2.nro = val;
+                        }
                     } else {
                         state.copia2.nro = val;
                     }
-                } else {
-                    state.copia2.nro = val;
-                }
-                document.getElementById('input-nro-2').value = state.copia2.nro;
-                renderPreviews();
-            });
+                    const inputNro2 = document.getElementById('input-nro-2');
+                    if (inputNro2) inputNro2.value = state.copia2.nro;
+                    renderPreviews();
+                });
+            }
 
             // Checkbox auto-incremento
-            document.getElementById('auto-inc-checkbox').addEventListener('change', (e) => {
-                state.autoIncrement = e.target.checked;
-                renderPreviews();
-            });
+            const autoInc = document.getElementById('auto-inc-checkbox');
+            if (autoInc) {
+                autoInc.addEventListener('change', (e) => {
+                    state.autoIncrement = e.target.checked;
+                    renderPreviews();
+                });
+            }
 
             // Vincular inputs de Copia 2 (Inferior)
             const bindingsCopia2 = [
@@ -884,55 +849,51 @@
             ];
 
             directivaBindings.forEach(item => {
-                document.getElementById(item.id).addEventListener('input', (e) => {
-                    const val = e.target.value;
-                    state.copia1[item.key] = val;
-                    state.copia2[item.key] = val;
-                    renderPreviews();
-                });
+                const el = document.getElementById(item.id);
+                if (el) {
+                    el.addEventListener('input', (e) => {
+                        const val = e.target.value;
+                        state.copia1[item.key] = val;
+                        state.copia2[item.key] = val;
+                        renderPreviews();
+                    });
+                }
             });
 
             // Sliders globales de espaciado
-            document.getElementById('input-logo-size').addEventListener('input', (e) => {
-                const size = e.target.value;
-                state.logoSize = parseInt(size);
-                document.getElementById('logo-size-value').textContent = size;
-                localStorage.setItem('junta_logo_size', size);
-                renderPreviews();
+            const sliders = [
+                { id: 'input-logo-size', key: 'logoSize', valEl: 'logo-size-value', storage: 'junta_logo_size' },
+                { id: 'input-certifica-margin', key: 'certificaMargin', valEl: 'certifica-margin-value', storage: 'junta_certifica_margin' },
+                { id: 'input-certifica-bottom', key: 'certificaBottom', valEl: 'certifica-bottom-value', storage: 'junta_certifica_bottom' },
+                { id: 'input-fields-gap', key: 'fieldsGap', valEl: 'fields-gap-value', storage: 'junta_fields_gap' }
+            ];
+
+            sliders.forEach(s => {
+                const el = document.getElementById(s.id);
+                if (el) {
+                    el.addEventListener('input', (e) => {
+                        const val = parseInt(e.target.value);
+                        state[s.key] = val;
+                        document.getElementById(s.valEl).textContent = val;
+                        localStorage.setItem(s.storage, val);
+                        renderPreviews();
+                    });
+                }
             });
 
-            document.getElementById('input-certifica-margin').addEventListener('input', (e) => {
-                const margin = e.target.value;
-                state.certificaMargin = parseInt(margin);
-                document.getElementById('certifica-margin-value').textContent = margin;
-                localStorage.setItem('junta_certifica_margin', margin);
-                renderPreviews();
-            });
-
-            document.getElementById('input-certifica-bottom').addEventListener('input', (e) => {
-                const val = e.target.value;
-                state.certificaBottom = parseInt(val);
-                document.getElementById('certifica-bottom-value').textContent = val;
-                localStorage.setItem('junta_certifica_bottom', val);
-                renderPreviews();
-            });
-
-            document.getElementById('input-fields-gap').addEventListener('input', (e) => {
-                const gap = e.target.value;
-                state.fieldsGap = parseInt(gap);
-                document.getElementById('fields-gap-value').textContent = gap;
-                localStorage.setItem('junta_fields_gap', gap);
-                renderPreviews();
-            });
-
-            document.getElementById('input-line-height').addEventListener('input', (e) => {
-                const val = parseFloat(e.target.value);
-                state.lineHeight = val;
-                document.getElementById('line-height-value').textContent = val.toFixed(2);
-                localStorage.setItem('junta_line_height', val);
-                renderPreviews();
-            });
+            // Slider especial con decimales
+            const lineH = document.getElementById('input-line-height');
+            if (lineH) {
+                lineH.addEventListener('input', (e) => {
+                    const val = parseFloat(e.target.value);
+                    state.lineHeight = val;
+                    document.getElementById('line-height-value').textContent = val.toFixed(2);
+                    localStorage.setItem('junta_line_height', val);
+                    renderPreviews();
+                });
+            }
         }
+        // --- FIN CORRECCIÓN ---
 
         // Función auxiliar útil para copiar datos del primero al segundo de manera rápida
         function copiarSuperiorAInferior() {
