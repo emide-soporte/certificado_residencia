@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador Doble Certificado Residencia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @page { size: A4; margin: 0; }
+        body { background: #1e293b; color: white; font-family: sans-serif; }
+        .half-sheet { 
+            width: 210mm; 
+            height: 148.5mm; 
+            background: white; 
+            color: black; 
+            padding: 10mm; 
+            box-sizing: border-box; 
+            position: relative; 
+            display: flex; 
+            flex-direction: column;
+            overflow: hidden;
+            /* Variables globales de diseño */
+            font-family: var(--user-font, 'Times New Roman');
+            font-size: var(--user-size, 12px);
+        }
+        .cut-line { 
+            border-top: 1px dashed #64748b; 
+            margin: 10px 0; 
+            position: relative; 
+        }
+        .print-only { display: none; }
+        @media print {
+            body { background: white; }
+            .no-print { display: none; }
+            .print-only { display: block; }
+            .half-sheet { border: none; }
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <div class="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto">
+        <!-- Panel de Control -->
+        <div class="w-full lg:w-96 space-y-4 no-print bg-slate-900 p-6 rounded-2xl border border-slate-700 h-fit">
+            <h2 class="text-xl font-bold text-emerald-400">Ajustes de Diseño</h2>
+            
+            <!-- Estilo General -->
+            <div class="space-y-2 p-3 bg-slate-800 rounded-lg">
+                <label class="text-xs font-bold text-slate-400 uppercase">Tipografía y Tamaño</label>
+                <select id="input-font" class="w-full bg-slate-950 p-2 rounded border border-slate-700 text-sm">
+                    <option value="'Times New Roman', Times, serif">Times New Roman</option>
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="Courier New, monospace">Courier New</option>
+                </select>
+                <div class="flex items-center gap-2 text-sm">
+                    <span>Tamaño:</span>
+                    <input type="range" id="input-size" min="8" max="18" value="12" class="flex-1">
+                    <span id="size-val">12</span>px
+                </div>
+            </div>
+
+            <!-- Espaciados -->
+            <div class="space-y-2 p-3 bg-slate-800 rounded-lg">
+                <label class="text-xs font-bold text-slate-400 uppercase">Espaciados</label>
+                <div class="space-y-1">
+                    <label class="text-xs">Espacio tras Título:</label>
+                    <input type="range" id="input-title-margin" min="0" max="60" value="15" class="w-full">
+                </div>
+                <div class="space-y-1">
+                    <label class="text-xs">Espacio tras "Certifica":</label>
+                    <input type="range" id="input-certifica-bottom" min="-100" max="40" value="0" class="w-full">
+                </div>
+            </div>
+
+            <!-- Formulario C1 -->
+            <div class="p-3 bg-emerald-900/20 rounded-lg border border-emerald-900">
+                <h3 class="text-sm font-bold text-emerald-400 mb-2">Copia Superior</h3>
+                <input type="text" id="c1-nombre" placeholder="Nombre completo" class="w-full bg-slate-950 p-2 mb-2 rounded border border-slate-700 text-sm">
+                <input type="text" id="c1-rut" placeholder="RUT" class="w-full bg-slate-950 p-2 mb-2 rounded border border-slate-700 text-sm">
+                <input type="text" id="c1-direccion" placeholder="Dirección" class="w-full bg-slate-950 p-2 mb-2 rounded border border-slate-700 text-sm">
+            </div>
+
+            <!-- Formulario C2 -->
+            <div class="p-3 bg-amber-900/20 rounded-lg border border-amber-900">
+                <h3 class="text-sm font-bold text-amber-400 mb-2">Copia Inferior</h3>
+                <input type="text" id="c2-nombre" placeholder="Nombre completo" class="w-full bg-slate-950 p-2 mb-2 rounded border border-slate-700 text-sm">
+                <input type="text" id="c2-rut" placeholder="RUT" class="w-full bg-slate-950 p-2 mb-2 rounded border border-slate-700 text-sm">
+                <input type="text" id="c2-direccion" placeholder="Dirección" class="w-full bg-slate-950 p-2 mb-2 rounded border border-slate-700 text-sm">
+            </div>
+        </div>
+
+        <!-- Previsualización -->
+        <div id="previews" class="flex flex-col gap-2">
+            <div id="c1-render" class="half-sheet"></div>
+            <div class="cut-line text-center text-xs text-slate-400">✂️ CORTE AQUÍ ✂️</div>
+            <div id="c2-render" class="half-sheet"></div>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            font: "'Times New Roman', Times, serif",
+            size: 12,
+            titleMargin: 15,
+            certificaBottom: 0
+        };
+
+        function render() {
+            const renderCert = (id, nombre, rut, direccion) => {
+                const el = document.getElementById(id);
+                el.style.setProperty('--user-font', state.font);
+                el.style.setProperty('--user-size', `${state.size}px`);
+                
+                el.innerHTML = `
+                    <div class="text-center font-bold" style="margin-bottom: ${state.titleMargin}px;">
+                        CERTIFICADO DE RESIDENCIA
+                    </div>
+                    <div class="text-justify">
+                        La Junta de Vecinos N° 7, Cerro Amarillo de Concepción, Inscripción N° 199.794, con Personalidad Jurídica N° 378 de 20 de marzo de 1972 e inscrita en la Secretaría Municipal bajo el N° 70 el 21 de febrero de 1990,
+                    </div>
+                    <div class="mt-4" style="margin-bottom: ${state.certificaBottom}px;">
+                        <strong>Certifica que el(la):</strong>
+                    </div>
+                    <div>
+                        Señor(a) <strong>${nombre || '....................'}</strong>, R.U.T. <strong>${rut || '....................'}</strong>, mantiene domicilio vigente en <strong>${direccion || '....................'}</strong>, comuna de Concepción.
+                    </div>
+                    <div class="mt-8">
+                        Se extiende el presente certificado, a solicitud del (la) interesado(a) para ser presentado en....................................................................................................
+                    </div>
+                    <div class="mt-8 text-right">
+                        Otorgado en Concepción, .... de ................ de ................
+                    </div>
+                `;
+            };
+
+            renderCert('c1-render', document.getElementById('c1-nombre').value, document.getElementById('c1-rut').value, document.getElementById('c1-direccion').value);
+            renderCert('c2-render', document.getElementById('c2-nombre').value, document.getElementById('c2-rut').value, document.getElementById('c2-direccion').value);
+        }
+
+        // Listeners
+        document.getElementById('input-font').addEventListener('change', (e) => { state.font = e.target.value; render(); });
+        document.getElementById('input-size').addEventListener('input', (e) => { state.size = e.target.value; document.getElementById('size-val').textContent = e.target.value; render(); });
+        document.getElementById('input-title-margin').addEventListener('input', (e) => { state.titleMargin = parseInt(e.target.value); render(); });
+        document.getElementById('input-certifica-bottom').addEventListener('input', (e) => { state.certificaBottom = parseInt(e.target.value); render(); });
+        
+        ['c1-nombre', 'c1-rut', 'c1-direccion', 'c2-nombre', 'c2-rut', 'c2-direccion'].forEach(id => {
+            document.getElementById(id).addEventListener('input', render);
+        });
+
+        render();
+    </script>
+</body>
+</html>
