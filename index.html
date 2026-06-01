@@ -799,41 +799,56 @@
                 });
 
                 // Vincular inputs de Copia 2 (Inferior) - Se mantienen independientes por si se requiere ajuste fino, 
-                // pero la idea es que Copia 1 domine la sincronización.
-                const bindingsCopia2 = [
-                    { id: 'input-nro-2', key: 'nro' },
-                    { id: 'input-nombre-2', key: 'nombre' },
-                    { id: 'input-rut-2', key: 'rut', format: true },
-                    { id: 'input-direccion-2', key: 'direccion' },
-                    { id: 'input-presentado-2', key: 'presentado' },
-                    { id: 'input-dia-2', key: 'dia' },
-                    { id: 'input-mes-2', key: 'mes' },
-                    { id: 'input-anio-2', key: 'anio' }
-                ];
+        function setupEventListeners() {
+            // Vincular inputs de Copia 1 (Superior) - Sincronizan automáticamente la Copia 2
+            const bindingsCopia1 = [
+                { id: 'input-nombre-1', key: 'nombre' },
+                { id: 'input-rut-1', key: 'rut', format: true },
+                { id: 'input-direccion-1', key: 'direccion' },
+                { id: 'input-presentado-1', key: 'presentado' },
+                { id: 'input-dia-1', key: 'dia' },
+                { id: 'input-mes-1', key: 'mes' },
+                { id: 'input-anio-1', key: 'anio' }
+            ];
 
-                bindingsCopia2.forEach(item => {
-                    const el = document.getElementById(item.id);
-                    el.addEventListener('input', (e) => {
-                        let val = e.target.value;
-                        if (item.format) {
-                            val = formatearRut(val);
-                            el.value = val;
-                        }
-                        state.copia2[item.key] = val;
-                        renderPreviews();
-                    });
+            bindingsCopia1.forEach(item => {
+                const el = document.getElementById(item.id);
+                if (!el) return;
+                el.addEventListener('input', (e) => {
+                    let val = e.target.value;
+                    if (item.format) val = formatearRut(val);
+                    el.value = val;
+                    state.copia1[item.key] = val;
+                    state.copia2[item.key] = val;
+                    const el2 = document.getElementById(item.id.replace('-1', '-2'));
+                    if (el2) el2.value = val;
+                    renderPreviews();
                 });
             });
 
-            // Número Copia 1 (Superior) con auto-incremento inteligente opcional para la inferior
+            // Número Copia 1 (Superior) con auto-incremento inteligente
             document.getElementById('input-nro-1').addEventListener('input', (e) => {
                 const val = e.target.value;
                 state.copia1.nro = val;
                 if (state.autoIncrement) {
-                    const inc = incrementarNumero(val);
-                    state.copia2.nro = inc;
-                    document.getElementById('input-nro-2').value = inc;
+                    const match = val.match(/^(\d+)(\/.*)?$/);
+                    if (match) {
+                        const num = parseInt(match[1]);
+                        const suffix = match[2] || "";
+                        state.copia2.nro = (num + 1) + suffix;
+                    } else {
+                        state.copia2.nro = val;
+                    }
+                } else {
+                    state.copia2.nro = val;
                 }
+                document.getElementById('input-nro-2').value = state.copia2.nro;
+                renderPreviews();
+            });
+
+            // Checkbox auto-incremento
+            document.getElementById('auto-inc-checkbox').addEventListener('change', (e) => {
+                state.autoIncrement = e.target.checked;
                 renderPreviews();
             });
 
@@ -851,30 +866,17 @@
 
             bindingsCopia2.forEach(item => {
                 const el = document.getElementById(item.id);
+                if (!el) return;
                 el.addEventListener('input', (e) => {
                     let val = e.target.value;
-                    if (item.format) {
-                        val = formatearRut(val);
-                        el.value = val;
-                    }
+                    if (item.format) val = formatearRut(val);
+                    el.value = val;
                     state.copia2[item.key] = val;
                     renderPreviews();
                 });
             });
 
-            // Checkbox auto-incremento
-            const autoIncCheck = document.getElementById('auto-inc-checkbox');
-            autoIncCheck.addEventListener('change', (e) => {
-                state.autoIncrement = e.target.checked;
-                if (state.autoIncrement) {
-                    const inc = incrementarNumero(state.copia1.nro);
-                    state.copia2.nro = inc;
-                    document.getElementById('input-nro-2').value = inc;
-                }
-                renderPreviews();
-            });
-
-            // Inputs Directiva Globales (Afectan a ambos)
+            // Inputs Directiva Globales
             const directivaBindings = [
                 { id: 'input-firmante-nombre', key: 'firmante_nombre' },
                 { id: 'input-firmante-cargo', key: 'firmante_cargo' },
@@ -907,7 +909,6 @@
                 renderPreviews();
             });
 
-            // Nuevo listener para el espacio inferior
             document.getElementById('input-certifica-bottom').addEventListener('input', (e) => {
                 const val = e.target.value;
                 state.certificaBottom = parseInt(val);
