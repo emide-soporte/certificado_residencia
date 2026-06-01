@@ -78,8 +78,17 @@
         /* Forzar Times New Roman e Interlineado de 1.5 de manera global en las hojas del certificado */
         .half-sheet,
         .half-sheet * {
-            font-family: 'Times New Roman', Times, Georgia, serif !important;
+            font-family: var(--body-font) !important;
             line-height: var(--cert-line-height, 1.5) !important;
+        }
+
+        .title-text-dynamic { 
+            font-family: var(--label-font) !important; 
+            font-size: calc(22px * var(--font-scale)) !important; 
+        }
+        .body-text-dynamic { 
+            font-family: var(--body-font) !important; 
+            font-size: calc(11.5px * var(--font-scale)) !important; 
         }
 
         /* Subrayado inteligente de flujo continuo que se adapta y salta de línea perfectamente */
@@ -664,37 +673,26 @@
             document.getElementById('font-size-value').textContent = fontSizePercent;
             const sizeMod = (fontSizePercent / 100).toFixed(2);
             
-            const styleBlock = document.getElementById('custom-font-style');
-            styleBlock.textContent = `
-                :root {
-                    --label-font: ${labelFont};
-                    --body-font: ${bodyFont};
-                    --font-scale: ${sizeMod};
-                }
-                .font-cert-title { font-family: var(--label-font) !important; }
-                .font-cert-body { font-family: var(--body-font) !important; }
-                .body-text-dynamic { font-family: var(--body-font) !important; font-size: calc(11.5px * var(--font-scale)) !important; }
-                .title-text-dynamic { font-family: var(--label-font) !important; font-size: calc(22px * var(--font-scale)) !important; }
-            `;
+            // Aplicar variables CSS directamente al root para impacto inmediato
+            document.documentElement.style.setProperty('--label-font', labelFont);
+            document.documentElement.style.setProperty('--body-font', bodyFont);
+            document.documentElement.style.setProperty('--font-scale', sizeMod);
             
             localStorage.setItem('junta_label_font', labelFont);
             localStorage.setItem('junta_body_font', bodyFont);
             localStorage.setItem('junta_font_size', fontSizePercent);
+            
             renderPreviews();
         }
 
-        // Nueva función para sincronizar el estado entre copia 1 y 2
-        function sincronizarEstado() {
-            state.copia2 = { ...state.copia1 };
-            // Actualizar campos input de la copia 2
-            document.getElementById('input-nro-2').value = state.copia2.nro;
-            document.getElementById('input-nombre-2').value = state.copia2.nombre;
-            document.getElementById('input-rut-2').value = state.copia2.rut;
-            document.getElementById('input-direccion-2').value = state.copia2.direccion;
-            document.getElementById('input-presentado-2').value = state.copia2.presentado;
-            document.getElementById('input-dia-2').value = state.copia2.dia;
-            document.getElementById('input-mes-2').value = state.copia2.mes;
-            document.getElementById('input-anio-2').value = state.copia2.anio;
+        // Sincronización automática de C1 a C2
+        function autoSincronizarCopia(field, value) {
+            const target = document.getElementById(`input-${field}-2`);
+            if (target) {
+                target.value = value;
+                state.copia2[field] = value;
+            }
+            renderPreviews();
         }
 
         window.addEventListener('load', () => {
@@ -833,7 +831,7 @@
                     let val = e.target.value;
                     if (item.format) { val = formatearRut(val); el.value = val; }
                     state.copia1[item.key] = val;
-                    sincronizarEstado(); // Sincronizar
+                    autoSincronizarCopia(item.key, val); // Forzar sincronización
                     renderPreviews();
                 });
             });
@@ -841,7 +839,7 @@
             // Número Copia 1
             document.getElementById('input-nro-1').addEventListener('input', (e) => {
                 state.copia1.nro = e.target.value;
-                sincronizarEstado(); 
+                autoSincronizarCopia('nro', e.target.value);
                 renderPreviews();
             });
 
@@ -1073,13 +1071,13 @@
         }
 
         function renderPreviews() {
+            // Asegurar que las clases dinámicas de escalado estén presentes
+            document.querySelectorAll('.font-cert-body').forEach(el => el.classList.add('body-text-dynamic'));
+            document.querySelectorAll('h2').forEach(el => el.classList.add('title-text-dynamic'));
+
             document.querySelectorAll('.half-sheet').forEach(sheet => {
                 sheet.style.setProperty('--cert-line-height', state.lineHeight);
             });
-
-            // Forzar actualización de clases dinámicas en el DOM de vista previa
-            document.querySelectorAll('.font-cert-body').forEach(el => el.classList.add('body-text-dynamic'));
-            document.querySelectorAll('.font-cert-title').forEach(el => el.classList.add('title-text-dynamic'));
 
             const container1 = document.getElementById('logo-container-1');
             const container2 = document.getElementById('logo-container-2');
@@ -1098,6 +1096,8 @@
             } else {
                 container1.style.display = 'none';
                 container2.style.display = 'none';
+                container1.innerHTML = '';
+                container2.innerHTML = '';
             }
 
             const labelCert1 = document.getElementById('preview-certifica-lbl-1');
