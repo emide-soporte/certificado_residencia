@@ -265,6 +265,28 @@
                     <input type="range" id="input-font-size" min="80" max="130" value="100" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="actualizarEstiloFuente()">
                 </div>
 
+                <div class="space-y-1.5">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-300 font-medium">Tamaño Base: <span id="font-size-value" class="text-emerald-400 font-bold">100</span>%</span>
+                    </div>
+                    <input type="range" id="input-font-size" min="80" max="130" value="100" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="actualizarEstiloFuente()">
+                </div>
+
+                <!-- NUEVOS CONTROLES: Tamaño Logo y Margen Certifica -->
+                <div class="space-y-1.5 pt-2 border-t border-slate-800/60">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-300 font-medium">Tamaño Logo: <span id="logo-size-value" class="text-emerald-400 font-bold">68</span>px</span>
+                    </div>
+                    <input type="range" id="input-logo-size" min="20" max="150" value="68" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="renderPreviews()">
+                </div>
+                
+                <div class="space-y-1.5">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-300 font-medium">Espacio "Certifica": <span id="certifica-margin-value" class="text-emerald-400 font-bold">32</span>px</span>
+                    </div>
+                    <input type="range" id="input-certifica-margin" min="0" max="100" value="32" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="renderPreviews()">
+                </div>
+
                 <!-- Botón de Sincronización de Fecha -->
                 <button type="button" onclick="sincronizarFechasAHoy()" class="w-full bg-emerald-950/40 hover:bg-emerald-900/40 text-emerald-400 border border-emerald-800/60 py-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-2">
 
@@ -679,7 +701,35 @@
             if (el1) el1.value = value;
             if (el2) el2.value = value;
             
-            renderPreviews();
+            renderPreviews() {
+                function renderPreviews() {
+            // ... (código existente de font-scale al inicio)
+
+            // CAPTURA DE NUEVOS VALORES DE LOS SLIDERS
+            const size = document.getElementById('input-logo-size')?.value || 68;
+            const margin = document.getElementById('input-certifica-margin')?.value || 32;
+            
+            // ACTUALIZAR VALORES VISUALES EN PANEL
+            document.getElementById('logo-size-value').textContent = size;
+            document.getElementById('certifica-margin-value').textContent = margin;
+
+            // RENDERIZADO DE LOGOS CON TAMAÑO DINÁMICO
+            const containers = [
+                document.getElementById('logo-container-1'),
+                document.getElementById('logo-container-2')
+            ];
+
+            containers.forEach(container => {
+                if (base64Logo) {
+                    container.style.display = 'flex';
+                    container.style.width = `${size}px`;
+                    container.style.height = `${size}px`;
+                    container.innerHTML = `<img src="${base64Logo}" style="width: 100%; height: 100%; object-fit: contain;" alt="Logo">`;
+                } else {
+                    container.style.display = 'none';
+                    container.innerHTML = '';
+                }
+            });
         }
 
         window.addEventListener('load', () => {
@@ -1106,11 +1156,9 @@
 
             const labelCert1 = document.getElementById('preview-certifica-lbl-1');
             const labelCert2 = document.getElementById('preview-certifica-lbl-2');
-            if (labelCert1 && labelCert2) {
-                labelCert1.style.marginTop = `${state.certificaMargin}px`;
-                labelCert1.style.marginBottom = `${state.certificaBottom}px`;
-                labelCert2.style.marginTop = `${state.certificaMargin}px`;
-                labelCert2.style.marginBottom = `${state.certificaBottom}px`;
+            if (labelCert1) labelCert1.style.marginTop = `${margin}px`;
+            if (labelCert2) labelCert2.style.marginTop = `${margin}px`;
+            
             }
 
             const linesCont1 = document.getElementById('lines-container-1');
