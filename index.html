@@ -242,9 +242,9 @@
                 <!-- NUEVO: Espacio debajo de "Certifica" -->
                 <div class="space-y-1.5">
                     <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-300 font-medium">Espacio tras "Certifica": <span id="certifica-bottom-value" class="text-emerald-400 font-bold">2</span>px</span>
+                        <span class="text-slate-300 font-medium">Espacio tras "Certifica": <span id="certifica-bottom-value" class="text-emerald-400 font-bold">-50</span>px</span>
                     </div>
-                    <input type="range" id="input-certifica-bottom" min="-100" max="40" value="2" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                    <input type="range" id="input-certifica-bottom" min="-100" max="40" value="-50" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
                 </div>
 
                 <!-- Separación entre Filas del Vecino -->
@@ -649,7 +649,7 @@
             autoIncrement: true,
             logoSize: 68,
             certificaMargin: 32,
-            certificaBottom: 2, // Ajustado de 8 a 2 para menor espacio por defecto
+            certificaBottom: -50, // Ajustado a -50 por defecto
             fieldsGap: 14,
             lineHeight: 1.5,
             customLines: [],
