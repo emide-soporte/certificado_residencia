@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Certificado de Residencia - Junta de Vecinos N°7</title>
+    <title>Generador de Certificado de Residencia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
     
@@ -217,44 +217,14 @@
             <div class="bg-slate-800/40 p-4 rounded-xl border border-slate-800/80 space-y-4">
                 <span class="text-xs font-bold uppercase tracking-wider text-slate-300 block border-b border-slate-800/60 pb-1.5">Ajustes de Espaciado y Distribución</span>
                 
-                <div class="bg-emerald-900/20 border border-emerald-800/50 p-2 rounded-lg text-emerald-400 text-[10px] font-bold text-center">
-                    MODO ESPEJO ACTIVADO: Ambos documentos se sincronizan automáticamente.
-                </div>
+                <!-- Botón de Sincronización de Fecha -->
+                <button type="button" onclick="sincronizarFechasAHoy()" class="w-full bg-emerald-950/40 hover:bg-emerald-900/40 text-emerald-400 border border-emerald-800/60 py-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-2">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Sincronizar fechas a "Hoy"
+                </button>
 
                 <!-- Tamaño Logo -->
-        <!-- FORMULARIO 1: COPIA SUPERIOR (Sincroniza automáticamente la Inferior) -->
-            <div class="bg-slate-800/30 p-4 rounded-xl border border-emerald-500/20 space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Datos del Vecino (Sincronizado)</span>
-                    <span class="text-[10px] bg-emerald-950/80 text-emerald-300 px-2 py-0.5 rounded font-mono font-bold border border-emerald-800">AMBOS</span>
-                </div>
-
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">N° de Certificado (Base)</label>
-                        <input type="text" id="input-nro-1" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Ej: 482/26">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Nombre Completo</label>
-                        <input type="text" id="input-nombre-1" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Ej: Juan Andrés Pérez Díaz">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">R.U.T</label>
-                        <input type="text" id="input-rut-1" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Ej: 12.345.678-9">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Dirección Completa</label>
-                        <textarea id="input-direccion-1" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Calle, Pasaje, Número, Villa..."></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-300 mb-1">Presentado ante</label>
-                        <input type="text" id="input-presentado-1" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Ej: Carabineros de Chile para Licencia">
-                    </div>
-                </div>
-            </div>
-
-            <!-- ... existing code (Formulario 2 eliminado o ignorado por sincronización automática) ... -->
-
+                <div class="space-y-1.5">
                     <div class="flex justify-between items-center text-xs">
                         <span class="text-slate-300 font-medium">Tamaño del Logo: <span id="logo-size-value" class="text-emerald-400 font-bold">68</span>px</span>
                     </div>
@@ -270,12 +240,12 @@
                 </div>
 
                 <!-- NUEVO: Espacio debajo de "Certifica" -->
-            <div class="space-y-1.5">
-                <div class="flex justify-between items-center text-xs">
-                    <span class="text-slate-300 font-medium">Espacio tras "Certifica": <span id="certifica-bottom-value" class="text-emerald-400 font-bold">-50</span>px</span>
+                <div class="space-y-1.5">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-300 font-medium">Espacio tras "Certifica": <span id="certifica-bottom-value" class="text-emerald-400 font-bold">2</span>px</span>
+                    </div>
+                    <input type="range" id="input-certifica-bottom" min="-100" max="40" value="2" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
                 </div>
-                <input type="range" id="input-certifica-bottom" min="-100" max="40" value="-50" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
-            </div>
 
                 <!-- Separación entre Filas del Vecino -->
                 <div class="space-y-1.5">
@@ -355,7 +325,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-300 mb-1">Dirección Completa</label>
-                        <textarea id="input-direccion-1" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Calle, Pasaje, Número, Villa..."></textarea>
+                        <textarea id="input-direccion-1" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Calle, Pasaje, Número, Villa..."></textarea>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-slate-300 mb-1">Presentado ante</label>
@@ -506,7 +476,7 @@
 
                     <!-- PÁRRAFO INTRODUCTORIO -->
                     <p class="font-cert-body text-justify text-[11px] text-black">
-                        <strong>La Junta de Vecinos N° 7, Cerro Amarillo de Concepción, Inscripción N° 199.794, con Personalidad Jurídica N° 378 de 20 de marzo de 1972 e inscrita en la Secretaría Municipal bajo el N° 70 el 21 de febrero de 1990,</strong>
+                        <strong>La Junta de Vecinos N° 7 "Cerro Amarillo" de Concepción, Inscripción N° 199.794, con Personalidad Jurídica N° 378 de 20 de marzo de 1972 e inscrita en la Secretaría Municipal bajo el N° 70 el 21 de febrero de 1990,</strong>
                     </p>
 
                     <!-- LÍNEA CERTIFICA QUE EL(LA) - Desplazamiento dinámico ajustable -->
@@ -533,7 +503,7 @@
                         <div class="w-64 border-b border-slate-400 my-0.5"></div>
                         <span class="font-bold text-[11.5px] text-black font-sans block leading-tight" id="preview-firmante-nombre-1">María Isabel Irigoyen Durán</span>
                         <span class="font-bold text-[10px] tracking-wide text-slate-800 font-sans block leading-none" id="preview-firmante-cargo-1">TESORERA</span>
-                        <span class="text-[9.5px] font-semibold text-slate-700 font-sans block leading-none mt-0.5">Junta de Vecinos N°7 Cerro Amarillo</span>
+                        <span class="text-[9.5px] font-semibold text-slate-700 font-sans block leading-none mt-0.5">Junta de Vecinos N°7 "Cerro Amarillo" de Concepción</span>
                         <span class="text-[9px] text-slate-500 font-sans block leading-none" id="preview-firmante-periodo-1">Directorio 2026 - 2029</span>
                     </div>
 
@@ -571,7 +541,7 @@
 
                     <!-- PÁRRAFO INTRODUCTORIO -->
                     <p class="font-cert-body text-justify text-[11px] text-black">
-                        <strong>La Junta de Vecinos N° 7, Cerro Amarillo de Concepción, Inscripción N° 199.794, con Personalidad Jurídica N° 378 de 20 de marzo de 1972 e inscrita en la Secretaría Municipal bajo el N° 70 el 21 de febrero de 1990,</strong>
+                        <strong>La Junta de Vecinos N° 7 "Cerro Amarillo" de Concepción, Inscripción N° 199.794, con Personalidad Jurídica N° 378 de 20 de marzo de 1972 e inscrita en la Secretaría Municipal bajo el N° 70 el 21 de febrero de 1990,</strong>
                     </p>
 
                     <!-- LÍNEA CERTIFICA QUE EL(LA) - Desplazamiento dinámico ajustable -->
@@ -598,7 +568,7 @@
                         <div class="w-64 border-b border-slate-400 my-0.5"></div>
                         <span class="font-bold text-[11.5px] text-black font-sans block leading-tight" id="preview-firmante-nombre-2">María Isabel Irigoyen Durán</span>
                         <span class="font-bold text-[10px] tracking-wide text-slate-800 font-sans block leading-none" id="preview-firmante-cargo-2">TESORERA</span>
-                        <span class="text-[9.5px] font-semibold text-slate-700 font-sans block leading-none mt-0.5">Junta de Vecinos N°7 Cerro Amarillo</span>
+                        <span class="text-[9.5px] font-semibold text-slate-700 font-sans block leading-none mt-0.5">Junta de Vecinos N°7 "Cerro Amarillo" de Concepción</span>
                         <span class="text-[9px] text-slate-500 font-sans block leading-none" id="preview-firmante-periodo-2">Directorio 2026 - 2029</span>
                     </div>
 
@@ -679,7 +649,7 @@
             autoIncrement: true,
             logoSize: 68,
             certificaMargin: 32,
-            certificaBottom: -50, // Ajustado a -50 por defecto
+            certificaBottom: 2, // Ajustado de 8 a 2 para menor espacio por defecto
             fieldsGap: 14,
             lineHeight: 1.5,
             customLines: [],
@@ -786,9 +756,52 @@
             mostrarNotificacion("Fechas sincronizadas con el reloj de tu sistema.");
         }
 
-        // --- CORRECCIÓN: Función unificada de eventos ---
+        function incrementarNumero(nro) {
+            if (!nro) return "";
+            const match = nro.match(/\d+/);
+            if (match) {
+                const numPart = match[0];
+                const index = nro.indexOf(numPart);
+                const prefix = nro.slice(0, index);
+                const suffix = nro.slice(index + numPart.length);
+                const incrementado = parseInt(numPart, 10) + 1;
+                const padded = String(incrementado).padStart(numPart.length, '0');
+                return prefix + padded + suffix;
+            }
+            return nro;
+        }
+
+        function actualizarInputsDesdeEstado() {
+            // Copia Superior
+            document.getElementById('input-nro-1').value = state.copia1.nro;
+            document.getElementById('input-nombre-1').value = state.copia1.nombre;
+            document.getElementById('input-rut-1').value = state.copia1.rut;
+            document.getElementById('input-direccion-1').value = state.copia1.direccion;
+            document.getElementById('input-presentado-1').value = state.copia1.presentado;
+            document.getElementById('input-dia-1').value = state.copia1.dia;
+            document.getElementById('input-mes-1').value = state.copia1.mes;
+            document.getElementById('input-anio-1').value = state.copia1.anio;
+
+            // Copia Inferior
+            document.getElementById('input-nro-2').value = state.copia2.nro;
+            document.getElementById('input-nombre-2').value = state.copia2.nombre;
+            document.getElementById('input-rut-2').value = state.copia2.rut;
+            document.getElementById('input-direccion-2').value = state.copia2.direccion;
+            document.getElementById('input-presentado-2').value = state.copia2.presentado;
+            document.getElementById('input-dia-2').value = state.copia2.dia;
+            document.getElementById('input-mes-2').value = state.copia2.mes;
+            document.getElementById('input-anio-2').value = state.copia2.anio;
+
+            // Datos Directiva Globales
+            document.getElementById('input-firmante-nombre').value = state.copia1.firmante_nombre;
+            document.getElementById('input-firmante-cargo').value = state.copia1.firmante_cargo;
+            document.getElementById('input-firmante-periodo').value = state.copia1.firmante_periodo;
+
+            renderFormularioLineasPersonalizadas();
+        }
+
         function setupEventListeners() {
-            // Vincular inputs de Copia 1 (Superior) - Sincronizan automáticamente la Copia 2
+            // Vincular inputs de Copia 1 (Superior)
             const bindingsCopia1 = [
                 { id: 'input-nombre-1', key: 'nombre' },
                 { id: 'input-rut-1', key: 'rut', format: true },
@@ -801,51 +814,28 @@
 
             bindingsCopia1.forEach(item => {
                 const el = document.getElementById(item.id);
-                if (!el) return;
                 el.addEventListener('input', (e) => {
                     let val = e.target.value;
-                    if (item.format) val = formatearRut(val);
-                    el.value = val;
+                    if (item.format) {
+                        val = formatearRut(val);
+                        el.value = val;
+                    }
                     state.copia1[item.key] = val;
-                    state.copia2[item.key] = val;
-                    const el2 = document.getElementById(item.id.replace('-1', '-2'));
-                    if (el2) el2.value = val;
                     renderPreviews();
                 });
             });
 
-            // Número Copia 1 (Superior) con auto-incremento inteligente
-            const inputNro1 = document.getElementById('input-nro-1');
-            if (inputNro1) {
-                inputNro1.addEventListener('input', (e) => {
-                    const val = e.target.value;
-                    state.copia1.nro = val;
-                    if (state.autoIncrement) {
-                        const match = val.match(/^(\d+)(\/.*)?$/);
-                        if (match) {
-                            const num = parseInt(match[1]);
-                            const suffix = match[2] || "";
-                            state.copia2.nro = (num + 1) + suffix;
-                        } else {
-                            state.copia2.nro = val;
-                        }
-                    } else {
-                        state.copia2.nro = val;
-                    }
-                    const inputNro2 = document.getElementById('input-nro-2');
-                    if (inputNro2) inputNro2.value = state.copia2.nro;
-                    renderPreviews();
-                });
-            }
-
-            // Checkbox auto-incremento
-            const autoInc = document.getElementById('auto-inc-checkbox');
-            if (autoInc) {
-                autoInc.addEventListener('change', (e) => {
-                    state.autoIncrement = e.target.checked;
-                    renderPreviews();
-                });
-            }
+            // Número Copia 1 (Superior) con auto-incremento inteligente opcional para la inferior
+            document.getElementById('input-nro-1').addEventListener('input', (e) => {
+                const val = e.target.value;
+                state.copia1.nro = val;
+                if (state.autoIncrement) {
+                    const inc = incrementarNumero(val);
+                    state.copia2.nro = inc;
+                    document.getElementById('input-nro-2').value = inc;
+                }
+                renderPreviews();
+            });
 
             // Vincular inputs de Copia 2 (Inferior)
             const bindingsCopia2 = [
@@ -856,74 +846,92 @@
                 { id: 'input-presentado-2', key: 'presentado' },
                 { id: 'input-dia-2', key: 'dia' },
                 { id: 'input-mes-2', key: 'mes' },
-        // --- REESTRUCTURACIÓN DE EVENTOS PARA SINCRONIZACIÓN AUTOMÁTICA ---
-        function setupEventListeners() {
-            // Sincronización automática de todos los campos de Copia 1 a Copia 2
-            const inputsToSync = [
-                { id: 'input-nro-1', key: 'nro', targetId: 'input-nro-2' },
-                { id: 'input-nombre-1', key: 'nombre', targetId: 'input-nombre-2' },
-                { id: 'input-rut-1', key: 'rut', targetId: 'input-rut-2', format: true },
-                { id: 'input-direccion-1', key: 'direccion', targetId: 'input-direccion-2' },
-                { id: 'input-presentado-1', key: 'presentado', targetId: 'input-presentado-2' },
-                { id: 'input-dia-1', key: 'dia', targetId: 'input-dia-2' },
-                { id: 'input-mes-1', key: 'mes', targetId: 'input-mes-2' },
-                { id: 'input-anio-1', key: 'anio', targetId: 'input-anio-2' }
+                { id: 'input-anio-2', key: 'anio' }
             ];
 
-            inputsToSync.forEach(item => {
+            bindingsCopia2.forEach(item => {
                 const el = document.getElementById(item.id);
-                if (!el) return;
                 el.addEventListener('input', (e) => {
                     let val = e.target.value;
-                    if (item.format) val = formatearRut(val);
-                    el.value = val;
-                    
-                    // Actualizar estados
-                    state.copia1[item.key] = val;
+                    if (item.format) {
+                        val = formatearRut(val);
+                        el.value = val;
+                    }
                     state.copia2[item.key] = val;
-                    
-                    // Sincronizar input secundario si existe
-                    const targetEl = document.getElementById(item.targetId);
-                    if (targetEl) targetEl.value = val;
-                    
                     renderPreviews();
                 });
             });
 
-            // Sliders (Ajuste global)
-            const sliders = [
-                { id: 'input-logo-size', key: 'logoSize', valEl: 'logo-size-value', storage: 'junta_logo_size' },
-                { id: 'input-certifica-margin', key: 'certificaMargin', valEl: 'certifica-margin-value', storage: 'junta_certifica_margin' },
-                { id: 'input-certifica-bottom', key: 'certificaBottom', valEl: 'certifica-bottom-value', storage: 'junta_certifica_bottom' },
-                { id: 'input-fields-gap', key: 'fieldsGap', valEl: 'fields-gap-value', storage: 'junta_fields_gap' }
+            // Checkbox auto-incremento
+            const autoIncCheck = document.getElementById('auto-inc-checkbox');
+            autoIncCheck.addEventListener('change', (e) => {
+                state.autoIncrement = e.target.checked;
+                if (state.autoIncrement) {
+                    const inc = incrementarNumero(state.copia1.nro);
+                    state.copia2.nro = inc;
+                    document.getElementById('input-nro-2').value = inc;
+                }
+                renderPreviews();
+            });
+
+            // Inputs Directiva Globales (Afectan a ambos)
+            const directivaBindings = [
+                { id: 'input-firmante-nombre', key: 'firmante_nombre' },
+                { id: 'input-firmante-cargo', key: 'firmante_cargo' },
+                { id: 'input-firmante-periodo', key: 'firmante_periodo' }
             ];
 
-            sliders.forEach(s => {
-                const el = document.getElementById(s.id);
-                if (el) {
-                    el.addEventListener('input', (e) => {
-                        const val = parseInt(e.target.value);
-                        state[s.key] = val;
-                        if(document.getElementById(s.valEl)) document.getElementById(s.valEl).textContent = val;
-                        localStorage.setItem(s.storage, val);
-                        renderPreviews();
-                    });
-                }
-            });
-
-            // Interlineado
-            const lineH = document.getElementById('input-line-height');
-            if (lineH) {
-                lineH.addEventListener('input', (e) => {
-                    const val = parseFloat(e.target.value);
-                    state.lineHeight = val;
-                    document.getElementById('line-height-value').textContent = val.toFixed(2);
-                    localStorage.setItem('junta_line_height', val);
+            directivaBindings.forEach(item => {
+                document.getElementById(item.id).addEventListener('input', (e) => {
+                    const val = e.target.value;
+                    state.copia1[item.key] = val;
+                    state.copia2[item.key] = val;
                     renderPreviews();
                 });
-            }
+            });
+
+            // Sliders globales de espaciado
+            document.getElementById('input-logo-size').addEventListener('input', (e) => {
+                const size = e.target.value;
+                state.logoSize = parseInt(size);
+                document.getElementById('logo-size-value').textContent = size;
+                localStorage.setItem('junta_logo_size', size);
+                renderPreviews();
+            });
+
+            document.getElementById('input-certifica-margin').addEventListener('input', (e) => {
+                const margin = e.target.value;
+                state.certificaMargin = parseInt(margin);
+                document.getElementById('certifica-margin-value').textContent = margin;
+                localStorage.setItem('junta_certifica_margin', margin);
+                renderPreviews();
+            });
+
+            // Nuevo listener para el espacio inferior
+            document.getElementById('input-certifica-bottom').addEventListener('input', (e) => {
+                const val = e.target.value;
+                state.certificaBottom = parseInt(val);
+                document.getElementById('certifica-bottom-value').textContent = val;
+                localStorage.setItem('junta_certifica_bottom', val);
+                renderPreviews();
+            });
+
+            document.getElementById('input-fields-gap').addEventListener('input', (e) => {
+                const gap = e.target.value;
+                state.fieldsGap = parseInt(gap);
+                document.getElementById('fields-gap-value').textContent = gap;
+                localStorage.setItem('junta_fields_gap', gap);
+                renderPreviews();
+            });
+
+            document.getElementById('input-line-height').addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                state.lineHeight = val;
+                document.getElementById('line-height-value').textContent = val.toFixed(2);
+                localStorage.setItem('junta_line_height', val);
+                renderPreviews();
+            });
         }
-        // --- FIN CORRECCIÓN ---
 
         // Función auxiliar útil para copiar datos del primero al segundo de manera rápida
         function copiarSuperiorAInferior() {
@@ -1020,11 +1028,6 @@
                 state.certificaBottom = parseInt(storedCertificaBottom);
                 document.getElementById('input-certifica-bottom').value = storedCertificaBottom;
                 document.getElementById('certifica-bottom-value').textContent = storedCertificaBottom;
-            } else {
-                // Asegurar que el estado inicial coincida si no hay nada guardado
-                state.certificaBottom = -50;
-                document.getElementById('input-certifica-bottom').value = -50;
-                document.getElementById('certifica-bottom-value').textContent = -50;
             }
 
             const storedGap = localStorage.getItem('junta_fields_gap');
