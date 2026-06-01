@@ -630,41 +630,25 @@
     </div>
 
     <script>
+        // ESTADO GLOBAL REESTABLECIDO PARA SINCRONIZACIÓN AUTOMÁTICA
+        const state = {
+            copia1: { nro: '', nombre: '', rut: '', direccion: '', presentado: '', dia: '', mes: '', anio: '', firmante_nombre: 'María Isabel Irigoyen Durán', firmante_cargo: 'TESORERA', firmante_periodo: 'Directorio 2026 - 2029' },
+            copia2: { nro: '', nombre: '', rut: '', direccion: '', presentado: '', dia: '', mes: '', anio: '', firmante_nombre: 'María Isabel Irigoyen Durán', firmante_cargo: 'TESORERA', firmante_periodo: 'Directorio 2026 - 2029' },
+            autoIncrement: true,
+            logoSize: 68,
+            certificaMargin: 32,
+            certificaBottom: 0,
+            fieldsGap: 14,
+            lineHeight: 1.5,
+            customLines: []
+        };
+
+        const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
         let base64Logo = "";
         let databaseMock = [];
         let idParaEliminar = null;
 
-        // Representación SVG del logo de la directiva oficial Cerro Amarillo
-        const defaultLogoSVG = `
-            <svg viewBox="0 0 120 120" style="width: 100%; height: 100%;">
-                <circle cx="60" cy="60" r="56" fill="white" stroke="#166534" stroke-width="2.5" />
-                <circle cx="60" cy="60" r="52.5" fill="none" stroke="#166534" stroke-width="0.75" />
-                <path id="top-path" d="M 17 60 A 43 43 0 0 1 103 60" fill="none" />
-                <text font-family="'Inter', sans-serif" font-weight="900" font-size="7.5" fill="#166534" letter-spacing="0.4">
-                    <textPath href="#top-path" startOffset="50%" text-anchor="middle">JUNTA DE VECINOS</textPath>
-                </text>
-                <path id="mid-path" d="M 28 60 A 32 32 0 0 1 92 60" fill="none" />
-                <text font-family="'Inter', sans-serif" font-weight="900" font-size="9" fill="#22c55e" letter-spacing="0.2">
-                    <textPath href="#mid-path" startOffset="50%" text-anchor="middle">N°7</textPath>
-                </text>
-                <path id="cerro-path" d="M 14 60 A 46 46 0 0 0 106 60" fill="none" />
-                <text font-family="'Inter', sans-serif" font-weight="900" font-size="7.5" fill="#166534" letter-spacing="0.3">
-                    <textPath href="#cerro-path" startOffset="50%" text-anchor="middle">CERRO AMARILLO</textPath>
-                </text>
-                <path id="concep-path" d="M 21 60 A 39 39 0 0 0 99 60" fill="none" />
-                <text font-family="'Inter', sans-serif" font-weight="bold" font-size="4.5" fill="#166534" letter-spacing="0.8">
-                    <textPath href="#concep-path" startOffset="50%" text-anchor="middle">• CONCEPCION, CHILE •</textPath>
-                </text>
-                <g transform="translate(39, 47)">
-                    <path d="M 0 20 Q 21 8 42 20 Z" fill="#eab308" opacity="0.8" />
-                    <path d="M 6 20 L 6 17 L 13 17 L 13 14 L 20 14 L 20 11 L 27 11 L 27 20" fill="none" stroke="#7c2d12" stroke-width="1.25" />
-                    <circle cx="8" cy="11" r="3" fill="#15803d" />
-                    <rect x="7.5" y="11.5" width="1" height="4.5" fill="#7c2d12" />
-                    <circle cx="34" cy="13" r="3.5" fill="#16a34a" />
-                    <rect x="33" y="13.5" width="1.2" height="5" fill="#7c2d12" />
-                </g>
-            </svg>
-        `;
+        // Función para aplicar cambios visuales al instante
         function actualizarEstiloFuente() {
             const labelFont = document.getElementById('select-label-font').value;
             const bodyFont = document.getElementById('select-body-font').value;
@@ -673,7 +657,6 @@
             document.getElementById('font-size-value').textContent = fontSizePercent;
             const sizeMod = (fontSizePercent / 100).toFixed(2);
             
-            // Aplicar variables CSS directamente al root para impacto inmediato
             document.documentElement.style.setProperty('--label-font', labelFont);
             document.documentElement.style.setProperty('--body-font', bodyFont);
             document.documentElement.style.setProperty('--font-scale', sizeMod);
@@ -685,13 +668,17 @@
             renderPreviews();
         }
 
-        // Sincronización automática de C1 a C2
-        function autoSincronizarCopia(field, value) {
-            const target = document.getElementById(`input-${field}-2`);
-            if (target) {
-                target.value = value;
-                state.copia2[field] = value;
-            }
+        // SINCRONIZADOR UNIVERSAL: Mantiene ambos formularios iguales
+        // FUNCIÓN DE SINCRONIZACIÓN TOTAL: Mantiene ambos certificados idénticos
+        function sincronizarTodo(key, value) {
+            state.copia1[key] = value;
+            state.copia2[key] = value;
+            
+            const el1 = document.getElementById(`input-${key}-1`);
+            const el2 = document.getElementById(`input-${key}-2`);
+            if (el1) el1.value = value;
+            if (el2) el2.value = value;
+            
             renderPreviews();
         }
 
@@ -700,8 +687,9 @@
             setupEventListeners();
             adjustScale();
             loadLogoFromLocalStorage();
-            cargarPreferenciasEstilo(); // Cargar preferencias guardadas
+            cargarPreferenciasEstilo();
             cargarHistorialLocal();
+            // Aseguramos que el logo se renderice al cargar
             renderPreviews();
         });
 
@@ -814,32 +802,33 @@
         }
 
         function setupEventListeners() {
-            // Vincular inputs de Copia 1 (Superior)
-            const bindingsCopia1 = [
-                { id: 'input-nombre-1', key: 'nombre' },
-                { id: 'input-rut-1', key: 'rut', format: true },
-                { id: 'input-direccion-1', key: 'direccion' },
-                { id: 'input-presentado-1', key: 'presentado' },
-                { id: 'input-dia-1', key: 'dia' },
-                { id: 'input-mes-1', key: 'mes' },
-                { id: 'input-anio-1', key: 'anio' }
-            ];
-
-            bindingsCopia1.forEach(item => {
-                const el = document.getElementById(item.id);
-                el.addEventListener('input', (e) => {
-                    let val = e.target.value;
-                    if (item.format) { val = formatearRut(val); el.value = val; }
-                    state.copia1[item.key] = val;
-                    autoSincronizarCopia(item.key, val); // Forzar sincronización
-                    renderPreviews();
-                });
+            // Campos que deben estar sincronizados siempre
+            const campos = ['nro', 'nombre', 'rut', 'direccion', 'presentado', 'dia', 'mes', 'anio'];
+            
+            campos.forEach(campo => {
+                const el1 = document.getElementById(`input-${campo}-1`);
+                const el2 = document.getElementById(`input-${campo}-2`);
+                
+                // Si se escribe en la Superior, actualiza todo
+                if (el1) el1.addEventListener('input', (e) => sincronizarTodo(campo, e.target.value));
+                // Si se escribe en la Inferior, también actualiza todo para mantener igualdad
+                if (el2) el2.addEventListener('input', (e) => sincronizarTodo(campo, e.target.value));
             });
 
-            // Número Copia 1
-            document.getElementById('input-nro-1').addEventListener('input', (e) => {
-                state.copia1.nro = e.target.value;
-                autoSincronizarCopia('nro', e.target.value);
+            // Sliders de diseño (Aplicación inmediata)
+            document.getElementById('input-font-size').addEventListener('input', actualizarEstiloFuente);
+            document.getElementById('select-label-font').addEventListener('change', actualizarEstiloFuente);
+            document.getElementById('select-body-font').addEventListener('change', actualizarEstiloFuente);
+
+            document.getElementById('input-fields-gap').addEventListener('input', (e) => {
+                state.fieldsGap = parseInt(e.target.value);
+                document.getElementById('fields-gap-value').textContent = e.target.value;
+                renderPreviews();
+            });
+
+            document.getElementById('input-line-height').addEventListener('input', (e) => {
+                state.lineHeight = parseFloat(e.target.value);
+                document.getElementById('line-height-value').textContent = state.lineHeight.toFixed(2);
                 renderPreviews();
             });
 
@@ -1071,12 +1060,27 @@
         }
 
         function renderPreviews() {
-            // Asegurar que las clases dinámicas de escalado estén presentes
-            document.querySelectorAll('.font-cert-body').forEach(el => el.classList.add('body-text-dynamic'));
-            document.querySelectorAll('h2').forEach(el => el.classList.add('title-text-dynamic'));
-
+            // Aplicar clases de escalado dinámico
             document.querySelectorAll('.half-sheet').forEach(sheet => {
                 sheet.style.setProperty('--cert-line-height', state.lineHeight);
+                sheet.classList.add('body-text-dynamic');
+            });
+
+            const containers = [
+                document.getElementById('logo-container-1'),
+                document.getElementById('logo-container-2')
+            ];
+
+            containers.forEach(container => {
+                if (base64Logo) {
+                    container.style.display = 'flex';
+                    container.style.width = `${state.logoSize}px`;
+                    container.style.height = `${state.logoSize}px`;
+                    container.innerHTML = `<img src="${base64Logo}" style="width: 100%; height: 100%; object-fit: contain;" alt="Logo">`;
+                } else {
+                    container.style.display = 'none';
+                    container.innerHTML = '';
+                }
             });
 
             const container1 = document.getElementById('logo-container-1');
