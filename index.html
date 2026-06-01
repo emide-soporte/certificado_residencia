@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Certificado de Residencia - Junta de Vecinos N°7</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    
+    <style id="custom-font-style">
+        :root {
+            --cert-custom-font: 'Times New Roman', Times, Georgia, serif;
+            --cert-font-size-mod: 1rem;
+        }
+    </style>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+        }
+        
+        .font-cert-title {
+            font-family: 'Times New Roman', Times, Georgia, serif !important;
+            line-height: 1.5 !important;
+        }
+        
+        .font-cert-body {
+            font-family: 'Times New Roman', Times, Georgia, serif !important;
+            line-height: var(--cert-line-height, 1.5) !important;
+        }
+
+        /* Contenedor de visualización A4 en pantalla */
+        #preview-container {
+            background-color: #1e293b;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+            overflow-x: auto;
+            min-height: 100vh;
+        }
+
+        /* Dimensiones exactas de una hoja A4 (210mm de ancho por 297mm de alto) */
+        .a4-sheet {
+            width: 210mm;
+            height: 297mm;
+            min-width: 210mm;
+            min-height: 297mm;
+            background: white;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* Cada mitad exacta es de 148.5mm con padding optimizado para interlineado 1.5 */
+        .half-sheet {
+            height: 148.5mm;
+            max-height: 148.5mm;
+            width: 210mm;
+            padding: 8mm 16mm 8mm 16mm;
+            box-sizing: border-box;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            color: #000000;
+            font-family: 'Times New Roman', Times, Georgia, serif !important;
+        }
+
+        /* Forzar Times New Roman e Interlineado de 1.5 de manera global en las hojas del certificado */
+        .half-sheet,
+        .half-sheet * {
+            font-family: 'Times New Roman', Times, Georgia, serif !important;
+            line-height: var(--cert-line-height, 1.5) !important;
+        }
+
+        /* Subrayado inteligente de flujo continuo que se adapta y salta de línea perfectamente */
+        .address-text-flow {
+            font-family: 'Times New Roman', Times, Georgia, serif !important;
+            font-weight: bold !important;
+            text-decoration: underline !important;
+            text-underline-offset: 4px !important;
+            text-decoration-color: #000000 !important;
+            text-decoration-thickness: 1.2px !important;
+            padding: 0 4px;
+            display: inline;
+            word-wrap: break-word;
+        }
+
+        /* Línea de corte intermitente del medio de la hoja */
+        .cut-line {
+            position: absolute;
+            top: 148.5mm;
+            left: 0;
+            width: 100%;
+            border-top: 1.5px dashed #cbd5e1;
+            z-index: 50;
+        }
+
+        /* Indicador visual de tijeras en el medio (solo visible en pantalla) */
+        .cut-indicator {
+            position: absolute;
+            top: 148.5mm;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ffffff;
+            padding: 2px 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 9999px;
+            color: #475569;
+            font-size: 10px;
+            font-family: 'Inter', sans-serif !important;
+            line-height: 1.2 !important;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 51;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            pointer-events: none;
+        }
+
+        /* Marcas sutiles de imprenta negras para guiar la guillotina (se imprimen en los bordes) */
+        .cut-mark-left, .cut-mark-right {
+            position: absolute;
+            top: 148.5mm;
+            width: 8mm;
+            height: 0;
+            border-top: 1.2px solid #000000;
+            z-index: 52;
+            opacity: 0.8;
+        }
+        .cut-mark-left {
+            left: 0;
+        }
+        .cut-mark-right {
+            right: 0;
+        }
+
+        /* Reglas optimizadas para el proceso de impresión física */
+        @media print {
+            @page {
+                size: A4; /* Configura estrictamente el tamaño de página A4 */
+                margin: 0; /* Remueve márgenes predeterminados del navegador */
+            }
+            body {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            #preview-container {
+                padding: 0 !important;
+                background: transparent !important;
+                min-height: auto !important;
+                display: block !important;
+                overflow: visible !important;
+            }
+            .a4-sheet {
+                box-shadow: none !important;
+                margin: 0 !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                page-break-inside: avoid;
+                page-break-after: avoid;
+            }
+            .cut-line {
+                border-top-color: #cbd5e1 !important;
+                opacity: 0.5;
+            }
+            .cut-mark-left, .cut-mark-right {
+                border-top-color: #000000 !important;
+                opacity: 0.4 !important;
+            }
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- PANEL DE CONTROL LATERAL -->
+    <div class="no-print w-full md:w-[440px] bg-slate-900 text-slate-100 flex flex-col h-full border-r border-slate-800 z-50">
+        <!-- Encabezado del Panel -->
+        <div class="p-5 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-500 text-slate-950 p-2 rounded-lg font-bold">
+                    A4
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight text-white">Certificado Residencia</h1>
+                    <p class="text-xs text-slate-400">Edición Profesional Adaptativa</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario e Inputs de Relleno -->
+        <div class="flex-1 overflow-y-auto p-5 space-y-6">
+            
+            <!-- Logo Personalizado Upload -->
+            <div class="bg-slate-800/40 p-4 rounded-xl border border-slate-800/80 space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Logo de la Institución</span>
+                    <button id="btn-remove-logo" onclick="removerLogoPersonalizado()" class="text-[10px] text-rose-400 hover:text-rose-300 hidden">Remover logo</button>
+                </div>
+                <div class="flex items-center justify-center w-full">
+                    <label class="flex flex-col items-center justify-center w-full h-24 border-2 border-slate-700 border-dashed rounded-lg cursor-pointer bg-slate-950/40 hover:bg-slate-950/80 transition">
+                        <div class="flex flex-col items-center justify-center pt-3 pb-3">
+                            <svg class="w-6 h-6 mb-1 text-slate-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                            </svg>
+                            <p class="text-xs text-slate-400"><span class="font-semibold text-emerald-400">Subir logo</span> o arrastrar</p>
+                            <p class="text-[10px] text-slate-500">PNG o JPG (Fondo transparente recomendado)</p>
+                        </div>
+                        <input type="file" id="input-logo" class="hidden" accept="image/*" onchange="cargarLogo(event)" />
+                    </label>
+                </div>
+            </div>
+
+            <!-- Ajustes de Diseño y Espaciado de Relleno -->
+            <div class="bg-slate-800/40 p-4 rounded-xl border border-slate-800/80 space-y-4">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-300 block border-b border-slate-800/60 pb-1.5">Ajustes Tipografía</span>
+                
+                <!-- Fuente Etiquetas -->
+                <div class="space-y-1.5">
+                    <label class="text-xs text-slate-300 font-medium">Fuente Etiquetas (RUT, Nombre...)</label>
+                    <select id="select-label-font" onchange="actualizarEstiloFuente()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200">
+                        <option value="'Times New Roman', Times, Georgia, serif">Times New Roman</option>
+                        <option value="'Arial', sans-serif">Arial</option>
+                        <option value="'Helvetica', sans-serif">Helvetica</option>
+                    </select>
+                </div>
+
+                <!-- Fuente Cuerpo -->
+                <div class="space-y-1.5">
+                    <label class="text-xs text-slate-300 font-medium">Fuente Cuerpo (Contenido)</label>
+                    <select id="select-body-font" onchange="actualizarEstiloFuente()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-200">
+                        <option value="'Times New Roman', Times, Georgia, serif">Times New Roman</option>
+                        <option value="'Georgia', serif">Georgia</option>
+                        <option value="'Courier New', monospace">Courier New</option>
+                    </select>
+                </div>
+
+                <!-- Tamaño Base -->
+                <div class="space-y-1.5">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-300 font-medium">Tamaño Base: <span id="font-size-value" class="text-emerald-400 font-bold">100</span>%</span>
+                    </div>
+                    <input type="range" id="input-font-size" min="80" max="130" value="100" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500" oninput="actualizarEstiloFuente()">
+                </div>
+
+                <!-- Botón de Sincronización de Fecha -->
+                <button type="button" onclick="sincronizarFechasAHoy()" class="w-full bg-emerald-950/40 hover:bg-emerald-900/40 text-emerald-400 border border-emerald-800/60 py-2 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-2">
+
+                <!-- Separación entre Filas del Vecino -->
+                <div class="space-y-1.5">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-300 font-medium">Espacio de Filas (Relleno): <span id="fields-gap-value" class="text-emerald-400 font-bold">14</span>px</span>
+                    </div>
+                    <input type="range" id="input-fields-gap" min="5" max="30" value="14" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                </div>
+
+                <!-- Interlineado de Texto General -->
+                <div class="space-y-1.5">
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-slate-300 font-medium">Interlineado de Texto: <span id="line-height-value" class="text-emerald-400 font-bold">1.50</span></span>
+                    </div>
+                    <input type="range" id="input-line-height" min="1.1" max="2.0" step="0.05" value="1.50" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500">
+                </div>
+            </div>
+
+            <!-- Ajuste Sincronización Avanzada -->
+            <div class="bg-slate-800/40 p-4 rounded-xl border border-slate-800 space-y-3">
+                <!-- Checkbox de Auto-incremento de Número -->
+                <div id="container-auto-inc" class="flex items-center gap-2">
+                    <input type="checkbox" id="auto-inc-checkbox" class="rounded bg-slate-950 border-slate-800 text-emerald-500 focus:ring-emerald-500" checked>
+                    <div class="text-xs">
+                        <span class="font-medium text-slate-300">Auto-incrementar N° de Copia Inferior</span>
+                        <p class="text-slate-500">Suma 1 al número (Ej: 482/26 → 483/26)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Líneas de Relleno Extra -->
+            <div class="bg-slate-800/40 p-4 rounded-xl border border-slate-800/80 space-y-3">
+                <div class="flex justify-between items-center border-b border-slate-800/60 pb-1.5">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-300 block">Líneas de Relleno Extra</span>
+                        <span class="text-[10px] text-slate-400 block mt-0.5">Agrega información extra según lo que necesites colocar</span>
+                    </div>
+                    <button type="button" onclick="crearNuevaLinea()" class="text-[11px] bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-400 border border-emerald-800/60 px-2.5 py-1 rounded-lg transition font-medium">
+                        + Añadir
+                    </button>
+                </div>
+                
+                <div id="custom-lines-container" class="space-y-3 max-h-60 overflow-y-auto pr-1">
+                    <!-- Filas dinámicas mediante JS -->
+                </div>
+            </div>
+
+            <!-- Botones de Utilidades y Ejemplo -->
+            <div class="flex gap-2">
+                <button type="button" onclick="cargarEjemplo()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-1.5 rounded-lg text-xs font-semibold transition">
+                    Cargar Ejemplo Distintos
+                </button>
+                <button type="button" onclick="limpiarCampos()" class="flex-1 bg-rose-950/30 hover:bg-rose-900/30 text-rose-300 py-1.5 rounded-lg text-xs font-semibold transition border border-rose-900/40">
+                    En Blanco
+                </button>
+            </div>
+
+            <!-- FORMULARIO 1: COPIA SUPERIOR -->
+            <div class="bg-slate-800/30 p-4 rounded-xl border border-emerald-500/20 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Copia Superior (Mitad Superior)</span>
+                    <span class="text-[10px] bg-emerald-950/80 text-emerald-300 px-2 py-0.5 rounded font-mono font-bold border border-emerald-800">C1</span>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">N° de Certificado</label>
+                        <input type="text" id="input-nro-1" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Ej: 482/26">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Nombre Completo</label>
+                        <input type="text" id="input-nombre-1" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Ej: Juan Andrés Pérez Díaz">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">R.U.T</label>
+                        <input type="text" id="input-rut-1" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Ej: 12.345.678-9">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Dirección Completa</label>
+                        <textarea id="input-direccion-1" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Calle, Pasaje, Número, Villa..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Presentado ante</label>
+                        <input type="text" id="input-presentado-1" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Ej: Carabineros de Chile para Licencia">
+                    </div>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <input type="text" id="input-dia-1" class="bg-slate-950 border border-slate-800 rounded-lg py-1.5 text-xs text-center text-slate-200 focus:outline-none" placeholder="Día">
+                        <input type="text" id="input-mes-1" class="bg-slate-950 border border-slate-800 rounded-lg py-1.5 text-xs text-center text-slate-200 focus:outline-none" placeholder="Mes">
+                        <input type="text" id="input-anio-1" class="bg-slate-950 border border-slate-800 rounded-lg py-1.5 text-xs text-center text-slate-200 focus:outline-none" placeholder="Año" value="6">
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORMULARIO 2: COPIA INFERIOR -->
+            <div class="bg-slate-800/30 p-4 rounded-xl border border-amber-500/20 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Copia Inferior (Mitad Inferior)</span>
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" onclick="copiarSuperiorAInferior()" class="text-[10px] bg-slate-950 hover:bg-slate-900 text-slate-300 px-2 py-0.5 rounded border border-slate-800 transition">
+                            ⚡ Copiar de Superior
+                        </button>
+                        <span class="text-[10px] bg-amber-950/80 text-amber-300 px-2 py-0.5 rounded font-mono font-bold border border-amber-850">C2</span>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">N° de Certificado</label>
+                        <input type="text" id="input-nro-2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Ej: 483/26">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Nombre Completo</label>
+                        <input type="text" id="input-nombre-2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Ej: María Elisa Fuentes Contreras">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">R.U.T</label>
+                        <input type="text" id="input-rut-2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Ej: 16.882.441-2">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Dirección Completa</label>
+                        <textarea id="input-direccion-2" rows="2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Calle, Pasaje, Número, Villa..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-300 mb-1">Presentado ante</label>
+                        <input type="text" id="input-presentado-2" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition" placeholder="Ej: Dirección del Trabajo para trámites">
+                    </div>
+                    <div class="grid grid-cols-3 gap-1.5">
+                        <input type="text" id="input-dia-2" class="bg-slate-950 border border-slate-800 rounded-lg py-1.5 text-xs text-center text-slate-200 focus:outline-none" placeholder="Día">
+                        <input type="text" id="input-mes-2" class="bg-slate-950 border border-slate-800 rounded-lg py-1.5 text-xs text-center text-slate-200 focus:outline-none" placeholder="Mes">
+                        <input type="text" id="input-anio-2" class="bg-slate-950 border border-slate-800 rounded-lg py-1.5 text-xs text-center text-slate-200 focus:outline-none" placeholder="Año" value="6">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historial y Exportación -->
+            <div class="pt-4 border-t border-slate-800 flex gap-2">
+                <button type="button" onclick="guardarEnHistorial()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-emerald-400 font-semibold py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                    Guardar Historial
+                </button>
+                <button type="button" onclick="exportarCSV()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-amber-400 font-semibold py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Google Sheets (CSV)
+                </button>
+            </div>
+
+            <!-- Lista de Emisiones -->
+            <div class="border-t border-slate-800 pt-4">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-2">Historial de Emisiones</span>
+                <div class="bg-slate-950 border border-slate-800 rounded-lg overflow-hidden">
+                    <div class="p-2 border-b border-slate-800 bg-slate-900/60">
+                        <input type="text" id="historial-search" oninput="buscarHistorial(this.value)" placeholder="Buscar por Nombre o RUT..." class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-xs text-slate-200 focus:outline-none">
+                    </div>
+                    <div id="historial-list" class="max-h-56 overflow-y-auto divide-y divide-slate-800/60 text-xs">
+                        <div class="p-3 text-center text-slate-500">Ningún certificado guardado aún.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edición Directiva (Tesorero/a) -->
+            <div class="border-t border-slate-800 pt-4">
+                <details class="group">
+                    <summary class="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-slate-400 cursor-pointer hover:text-slate-200 transition">
+                        <span>Firma de Directiva (Editar)</span>
+                        <span class="text-xs transition-transform group-open:rotate-180">▼</span>
+                    </summary>
+                    <div class="space-y-3 mt-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Nombre de la Firmante</label>
+                            <input type="text" id="input-firmante-nombre" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none" value="María Isabel Irigoyen Durán">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Cargo</label>
+                            <input type="text" id="input-firmante-cargo" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none" value="TESORERA">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Período de Directiva</label>
+                            <input type="text" id="input-firmante-periodo" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none" value="Directorio 2026 - 2029">
+                        </div>
+                    </div>
+                </details>
+            </div>
+
+        </div>
+
+        <!-- Botón de Imprimir -->
+        <div class="p-5 border-t border-slate-800 bg-slate-950">
+            <button onclick="window.print()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-950/20 flex items-center justify-center gap-2 transition transform active:scale-[0.98]">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Imprimir Documento (A4)
+            </button>
+        </div>
+    </div>
+
+    <!-- PREVISUALIZADOR HOJA A4 -->
+    <div id="preview-container" class="flex-1">
+        <div id="a4-sheet" class="a4-sheet">
+            
+            <!-- Líneas y marcas de corte físico (A4 dividido a la mitad exacta de 148.5mm) -->
+            <div class="cut-line"></div>
+            <div class="cut-mark-left"></div>
+            <div class="cut-mark-right"></div>
+            <div class="cut-indicator no-print">
+                <span>✂️ Cortar por aquí (Mitad exacta de hoja A4 - 148.5mm)</span>
+            </div>
+
+            <!-- COPIA SUPERIOR -->
+            <div class="half-sheet" id="sheet-copia-1">
+                <div>
+                    <!-- Encabezado con Logo y Número -->
+                    <div class="flex justify-between items-start w-full">
+                        <!-- Logo / Escudo -->
+                        <div class="flex items-center" id="logo-container-1" style="width: 68px; height: 68px;"></div>
+
+                        <!-- Numerador superior derecho oficial (Línea simple) -->
+                        <div class="flex items-baseline text-[16px] font-bold mt-2">
+                            <span class="mr-1">N°</span>
+                            <span class="w-28 border-b border-black text-center font-bold tracking-wider px-1 min-h-[1.4rem] inline-block font-sans" id="preview-nro-1"></span>
+                        </div>
+                    </div>
+
+                    <!-- TÍTULO OFICIAL -->
+                    <div class="text-center my-1.5">
+                        <h2 class="font-cert-title italic font-bold tracking-wider text-[22px] leading-tight text-black">CERTIFICADO DE RESIDENCIA</h2>
+                    </div>
+
+                    <!-- PÁRRAFO INTRODUCTORIO -->
+                    <p class="font-cert-body text-justify text-[11px] text-black">
+                        <strong>La Junta de Vecinos N° 7, Cerro Amarillo de Concepción, Inscripción N° 199.794, con Personalidad Jurídica N° 378 de 20 de marzo de 1972 e inscrita en la Secretaría Municipal bajo el N° 70 el 21 de febrero de 1990,</strong>
+                    </p>
+
+                    <!-- LÍNEA CERTIFICA QUE EL(LA) - Desplazamiento dinámico ajustable -->
+                    <p class="font-cert-body text-left text-[11.5px] text-black" id="preview-certifica-lbl-1" style="margin-top: 32px;">
+                        <strong>Certifica que el(la):</strong>
+                    </p>
+                </div>
+
+                <!-- SECCIÓN MEDIA: Flujo Continuo Adaptativo de Datos del Vecino -->
+                <div class="font-cert-body text-justify text-[11.5px] text-black" id="lines-container-1" style="line-height: var(--cert-line-height, 1.5) !important;">
+                    <span class="font-bold">Señor(a) </span><span class="address-text-flow" id="preview-nombre-1"></span><span class="font-bold">, R.U.T: </span><span class="address-text-flow" id="preview-rut-1"></span><span class="font-bold">, mantiene domicilio vigente en </span><span class="address-text-flow" id="preview-direccion-1"></span><span class="font-bold">, comuna de Concepción.</span>
+                    
+                    <!-- Bloque para campos extras agregados dinámemante -->
+                    <span id="extra-fields-container-1" class="inline"></span>
+                    
+                    <br><br>
+                    <span class="font-bold">Se extiende el presente certificado, a solicitud del (la) interesado(a) para ser presentado en </span><span class="address-text-flow" id="preview-presentado-1"></span><span class="font-bold">, para los efectos de acreditación de su domicilio. Este certificado tiene una validez de 30 días, a contar de esta fecha de emisión.</span>
+                </div>
+
+                <!-- SECCIÓN INFERIOR: Firma autorizada y Fecha -->
+                <div>
+                    <!-- FIRMA DE LA DIRECTIVA -->
+                    <div class="flex flex-col items-center text-center">
+                        <div class="w-64 border-b border-slate-400 my-0.5"></div>
+                        <span class="font-bold text-[11.5px] text-black font-sans block leading-tight" id="preview-firmante-nombre-1">María Isabel Irigoyen Durán</span>
+                        <span class="font-bold text-[10px] tracking-wide text-slate-800 font-sans block leading-none" id="preview-firmante-cargo-1">TESORERA</span>
+                        <span class="text-[9.5px] font-semibold text-slate-700 font-sans block leading-none mt-0.5">Junta de Vecinos N°7 Cerro Amarillo</span>
+                        <span class="text-[9px] text-slate-500 font-sans block leading-none" id="preview-firmante-periodo-1">Directorio 2026 - 2029</span>
+                    </div>
+
+                    <!-- FECHA EN PIE DE PÁGINA -->
+                    <div class="flex items-end font-cert-body text-[11px] font-bold mt-2 justify-start w-full gap-1">
+                        <span>Otorgado en Concepción,</span>
+                        <span class="font-semibold text-slate-900 focus:outline-none cursor-text px-0.5" contenteditable="true" id="preview-dia-1" oninput="syncDateFromPreview(this, 'dia', 1)" onkeydown="if(event.keyCode==13) event.preventDefault();"></span>
+                        <span>de</span>
+                        <span class="font-semibold text-slate-900 focus:outline-none cursor-text px-0.5" contenteditable="true" id="preview-mes-1" oninput="syncDateFromPreview(this, 'mes', 1)" onkeydown="if(event.keyCode==13) event.preventDefault();"></span>
+                        <span>de</span>
+                        <span class="font-semibold text-slate-900 focus:outline-none cursor-text px-0.5" contenteditable="true" id="preview-anio-1" oninput="syncDateFromPreview(this, 'anio', 1)" onkeydown="if(event.keyCode==13) event.preventDefault();"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COPIA INFERIOR -->
+            <div class="half-sheet" id="sheet-copia-2">
+                <div>
+                    <!-- Encabezado con Logo y Número -->
+                    <div class="flex justify-between items-start w-full">
+                        <!-- Logo / Escudo -->
+                        <div class="flex items-center" id="logo-container-2" style="width: 68px; height: 68px;"></div>
+
+                        <!-- Numerador superior derecho oficial (Línea simple) -->
+                        <div class="flex items-baseline text-[16px] font-bold mt-2">
+                            <span class="mr-1">N°</span>
+                            <span class="w-28 border-b border-black text-center font-bold tracking-wider px-1 min-h-[1.4rem] inline-block font-sans" id="preview-nro-2"></span>
+                        </div>
+                    </div>
+
+                    <!-- TÍTULO OFICIAL -->
+                    <div class="text-center my-1.5">
+                        <h2 class="font-cert-title italic font-bold tracking-wider text-[22px] leading-tight text-black">CERTIFICADO DE RESIDENCIA</h2>
+                    </div>
+
+                    <!-- PÁRRAFO INTRODUCTORIO -->
+                    <p class="font-cert-body text-justify text-[11px] text-black">
+                        <strong>La Junta de Vecinos N° 7, Cerro Amarillo de Concepción, Inscripción N° 199.794, con Personalidad Jurídica N° 378 de 20 de marzo de 1972 e inscrita en la Secretaría Municipal bajo el N° 70 el 21 de febrero de 1990,</strong>
+                    </p>
+
+                    <!-- LÍNEA CERTIFICA QUE EL(LA) - Desplazamiento dinámico ajustable -->
+                    <p class="font-cert-body text-left text-[11.5px] text-black" id="preview-certifica-lbl-2" style="margin-top: 32px;">
+                        <strong>Certifica que el(la):</strong>
+                    </p>
+                </div>
+
+                <!-- SECCIÓN MEDIA: Flujo Continuo Adaptativo de Datos del Vecino -->
+                <div class="font-cert-body text-justify text-[11.5px] text-black" id="lines-container-2" style="line-height: var(--cert-line-height, 1.5) !important;">
+                    <span class="font-bold">Señor(a) </span><span class="address-text-flow" id="preview-nombre-2"></span><span class="font-bold">, R.U.T: </span><span class="address-text-flow" id="preview-rut-2"></span><span class="font-bold">, mantiene domicilio vigente en </span><span class="address-text-flow" id="preview-direccion-2"></span><span class="font-bold">, comuna de Concepción.</span>
+                    
+                    <!-- Bloque para campos extras agregados dinámemante -->
+                    <span id="extra-fields-container-2" class="inline"></span>
+                    
+                    <br><br>
+                    <span class="font-bold">Se extiende el presente certificado, a solicitud del (la) interesado(a) para ser presentado en </span><span class="address-text-flow" id="preview-presentado-2"></span><span class="font-bold">, para los efectos de acreditación de su domicilio. Este certificado tiene una validez de 30 días, a contar de esta fecha de emisión.</span>
+                </div>
+
+                <!-- SECCIÓN INFERIOR: Firma autorizada y Fecha -->
+                <div>
+                    <!-- FIRMA DE LA DIRECTIVA -->
+                    <div class="flex flex-col items-center text-center">
+                        <div class="w-64 border-b border-slate-400 my-0.5"></div>
+                        <span class="font-bold text-[11.5px] text-black font-sans block leading-tight" id="preview-firmante-nombre-2">María Isabel Irigoyen Durán</span>
+                        <span class="font-bold text-[10px] tracking-wide text-slate-800 font-sans block leading-none" id="preview-firmante-cargo-2">TESORERA</span>
+                        <span class="text-[9.5px] font-semibold text-slate-700 font-sans block leading-none mt-0.5">Junta de Vecinos N°7 Cerro Amarillo</span>
+                        <span class="text-[9px] text-slate-500 font-sans block leading-none" id="preview-firmante-periodo-2">Directorio 2026 - 2029</span>
+                    </div>
+
+                    <!-- FECHA EN PIE DE PÁGINA -->
+                    <div class="flex items-end font-cert-body text-[11px] font-bold mt-2 justify-start w-full gap-1">
+                        <span>Otorgado en Concepción,</span>
+                        <span class="font-semibold text-slate-900 focus:outline-none cursor-text px-0.5" contenteditable="true" id="preview-dia-2" oninput="syncDateFromPreview(this, 'dia', 2)" onkeydown="if(event.keyCode==13) event.preventDefault();"></span>
+                        <span>de</span>
+                        <span class="font-semibold text-slate-900 focus:outline-none cursor-text px-0.5" contenteditable="true" id="preview-mes-2" oninput="syncDateFromPreview(this, 'mes', 2)" onkeydown="if(event.keyCode==13) event.preventDefault();"></span>
+                        <span>de</span>
+                        <span class="font-semibold text-slate-900 focus:outline-none cursor-text px-0.5" contenteditable="true" id="preview-anio-2" oninput="syncDateFromPreview(this, 'anio', 2)" onkeydown="if(event.keyCode==13) event.preventDefault();"></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- NOTIFICACIONES TOAST (Reemplazo de alert) -->
+    <div id="custom-toast" class="fixed bottom-5 right-5 bg-slate-900 border border-transparent text-transparent px-4 py-3 rounded-xl shadow-none flex items-center gap-2 z-[9999] transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none">
+        <div id="toast-icon"></div>
+        <span id="toast-text" class="text-xs font-semibold"></span>
+    </div>
+
+    <!-- MODAL CONFIRMACIÓN BORRADO (Reemplazo de confirm) -->
+    <div id="modal-confirmacion" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center z-[99999] no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl mx-4 transform transition-all">
+            <div class="flex items-center gap-3 text-amber-500 mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                <h4 class="font-bold text-lg text-slate-100">¿Eliminar Registro?</h4>
+            </div>
+            <p class="text-slate-400 text-sm mb-6 leading-relaxed">Esta acción quitará al vecino de tu lista del historial local. No podrás recuperarlo.</p>
+            <div class="flex justify-end gap-3">
+                <button onclick="cerrarModal()" class="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-slate-200 bg-slate-800 hover:bg-slate-700 rounded-lg transition">Cancelar</button>
+                <button onclick="confirmarEliminacion()" class="px-4 py-2 text-xs font-semibold text-slate-950 bg-rose-500 hover:bg-rose-400 rounded-lg transition">Confirmar Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let base64Logo = "";
+        let databaseMock = [];
+        let idParaEliminar = null;
+
+        // Representación SVG del logo de la directiva oficial Cerro Amarillo
+        const defaultLogoSVG = `
+            <svg viewBox="0 0 120 120" style="width: 100%; height: 100%;">
+                <circle cx="60" cy="60" r="56" fill="white" stroke="#166534" stroke-width="2.5" />
+                <circle cx="60" cy="60" r="52.5" fill="none" stroke="#166534" stroke-width="0.75" />
+                <path id="top-path" d="M 17 60 A 43 43 0 0 1 103 60" fill="none" />
+                <text font-family="'Inter', sans-serif" font-weight="900" font-size="7.5" fill="#166534" letter-spacing="0.4">
+                    <textPath href="#top-path" startOffset="50%" text-anchor="middle">JUNTA DE VECINOS</textPath>
+                </text>
+                <path id="mid-path" d="M 28 60 A 32 32 0 0 1 92 60" fill="none" />
+                <text font-family="'Inter', sans-serif" font-weight="900" font-size="9" fill="#22c55e" letter-spacing="0.2">
+                    <textPath href="#mid-path" startOffset="50%" text-anchor="middle">N°7</textPath>
+                </text>
+                <path id="cerro-path" d="M 14 60 A 46 46 0 0 0 106 60" fill="none" />
+                <text font-family="'Inter', sans-serif" font-weight="900" font-size="7.5" fill="#166534" letter-spacing="0.3">
+                    <textPath href="#cerro-path" startOffset="50%" text-anchor="middle">CERRO AMARILLO</textPath>
+                </text>
+                <path id="concep-path" d="M 21 60 A 39 39 0 0 0 99 60" fill="none" />
+                <text font-family="'Inter', sans-serif" font-weight="bold" font-size="4.5" fill="#166534" letter-spacing="0.8">
+                    <textPath href="#concep-path" startOffset="50%" text-anchor="middle">• CONCEPCION, CHILE •</textPath>
+                </text>
+                <g transform="translate(39, 47)">
+                    <path d="M 0 20 Q 21 8 42 20 Z" fill="#eab308" opacity="0.8" />
+                    <path d="M 6 20 L 6 17 L 13 17 L 13 14 L 20 14 L 20 11 L 27 11 L 27 20" fill="none" stroke="#7c2d12" stroke-width="1.25" />
+                    <circle cx="8" cy="11" r="3" fill="#15803d" />
+                    <rect x="7.5" y="11.5" width="1" height="4.5" fill="#7c2d12" />
+                    <circle cx="34" cy="13" r="3.5" fill="#16a34a" />
+                    <rect x="33" y="13.5" width="1.2" height="5" fill="#7c2d12" />
+                </g>
+            </svg>
+        `;
+        function actualizarEstiloFuente() {
+            const labelFont = document.getElementById('select-label-font').value;
+            const bodyFont = document.getElementById('select-body-font').value;
+            const fontSizePercent = document.getElementById('input-font-size').value;
+            
+            document.getElementById('font-size-value').textContent = fontSizePercent;
+            const sizeMod = (fontSizePercent / 100).toFixed(2);
+            
+            const styleBlock = document.getElementById('custom-font-style');
+            styleBlock.textContent = `
+                :root {
+                    --label-font: ${labelFont};
+                    --body-font: ${bodyFont};
+                    --font-scale: ${sizeMod};
+                }
+                .label-font { font-family: var(--label-font) !important; font-size: calc(11.5px * var(--font-scale)) !important; }
+                .body-font, .body-font * { font-family: var(--body-font) !important; font-size: calc(11.5px * var(--font-scale)) !important; }
+                .half-sheet .text-\\[22px\\] { font-size: calc(22px * var(--font-scale)) !important; }
+            `;
+            
+            localStorage.setItem('junta_label_font', labelFont);
+            localStorage.setItem('junta_body_font', bodyFont);
+            localStorage.setItem('junta_font_size', fontSizePercent);
+        }
+
+        function cargarPreferenciasEstilo() {
+            const savedFont = localStorage.getItem('junta_font_family');
+            const savedSize = localStorage.getItem('junta_font_size');
+            
+            if (savedFont) document.getElementById('select-font-family').value = savedFont;
+            if (savedSize) document.getElementById('input-font-size').value = savedSize;
+            
+            actualizarEstiloFuente();
+        }
+
+        window.addEventListener('load', () => {
+            initDate();
+            setupEventListeners();
+            adjustScale();
+            loadLogoFromLocalStorage();
+            cargarPreferenciasEstilo(); // Cargar preferencias guardadas
+            cargarHistorialLocal();
+            renderPreviews();
+        });
+
+        window.addEventListener('resize', adjustScale);
+
+        function mostrarNotificacion(mensaje, tipo = 'success') {
+            const toast = document.getElementById('custom-toast');
+            const toastText = document.getElementById('toast-text');
+            const toastIcon = document.getElementById('toast-icon');
+            
+            toastText.textContent = mensaje;
+            
+            if (tipo === 'success') {
+                toast.className = "fixed bottom-5 right-5 bg-slate-900 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 z-[9999] transition-all duration-300 transform translate-y-0 opacity-100";
+                toastIcon.innerHTML = `<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>`;
+            } else {
+                toast.className = "fixed bottom-5 right-5 bg-slate-900 border border-rose-500/30 text-rose-400 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 z-[9999] transition-all duration-300 transform translate-y-0 opacity-100";
+                toastIcon.innerHTML = `<svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>`;
+            }
+            
+            setTimeout(() => {
+                toast.className = "fixed bottom-5 right-5 bg-slate-900 border border-transparent text-transparent px-4 py-3 rounded-xl shadow-none flex items-center gap-2 z-[9999] transition-all duration-300 transform translate-y-10 opacity-0 pointer-events-none";
+            }, 4000);
+        }
+
+        function adjustScale() {
+            const previewEl = document.getElementById('a4-sheet');
+            const container = document.getElementById('preview-container');
+            if (!container || !previewEl) return;
+            
+            const containerWidth = container.clientWidth - 48;
+            const sheetWidth = 793.7;
+            
+            let scale = containerWidth / sheetWidth;
+            if (scale > 1) scale = 1;
+            
+            previewEl.style.transform = `scale(${scale})`;
+            previewEl.style.transformOrigin = 'top center';
+            
+            const sheetHeight = 1122.5;
+            container.style.height = `${sheetHeight * scale + 64}px`;
+        }
+
+        function initDate() {
+            const hoy = new Date();
+            const diaStr = String(hoy.getDate());
+            const mesStr = meses[hoy.getMonth()];
+            const anioCompleto = String(hoy.getFullYear()); // Año completo de 4 dígitos
+
+            state.copia1.dia = diaStr;
+            state.copia1.mes = mesStr;
+            state.copia1.anio = anioCompleto;
+
+            state.copia2.dia = diaStr;
+            state.copia2.mes = mesStr;
+            state.copia2.anio = anioCompleto;
+
+            actualizarInputsDesdeEstado();
+        }
+
+        // Nueva función para sincronizar manualmente a la fecha actual
+        function sincronizarFechasAHoy() {
+            initDate();
+            renderPreviews();
+            mostrarNotificacion("Fechas sincronizadas con el reloj de tu sistema.");
+        }
+
+        function incrementarNumero(nro) {
+            if (!nro) return "";
+            const match = nro.match(/\d+/);
+            if (match) {
+                const numPart = match[0];
+                const index = nro.indexOf(numPart);
+                const prefix = nro.slice(0, index);
+                const suffix = nro.slice(index + numPart.length);
+                const incrementado = parseInt(numPart, 10) + 1;
+                const padded = String(incrementado).padStart(numPart.length, '0');
+                return prefix + padded + suffix;
+            }
+            return nro;
+        }
+
+        function actualizarInputsDesdeEstado() {
+            // Copia Superior
+            document.getElementById('input-nro-1').value = state.copia1.nro;
+            document.getElementById('input-nombre-1').value = state.copia1.nombre;
+            document.getElementById('input-rut-1').value = state.copia1.rut;
+            document.getElementById('input-direccion-1').value = state.copia1.direccion;
+            document.getElementById('input-presentado-1').value = state.copia1.presentado;
+            document.getElementById('input-dia-1').value = state.copia1.dia;
+            document.getElementById('input-mes-1').value = state.copia1.mes;
+            document.getElementById('input-anio-1').value = state.copia1.anio;
+
+            // Copia Inferior
+            document.getElementById('input-nro-2').value = state.copia2.nro;
+            document.getElementById('input-nombre-2').value = state.copia2.nombre;
+            document.getElementById('input-rut-2').value = state.copia2.rut;
+            document.getElementById('input-direccion-2').value = state.copia2.direccion;
+            document.getElementById('input-presentado-2').value = state.copia2.presentado;
+            document.getElementById('input-dia-2').value = state.copia2.dia;
+            document.getElementById('input-mes-2').value = state.copia2.mes;
+            document.getElementById('input-anio-2').value = state.copia2.anio;
+
+            // Datos Directiva Globales
+            document.getElementById('input-firmante-nombre').value = state.copia1.firmante_nombre;
+            document.getElementById('input-firmante-cargo').value = state.copia1.firmante_cargo;
+            document.getElementById('input-firmante-periodo').value = state.copia1.firmante_periodo;
+
+            renderFormularioLineasPersonalizadas();
+        }
+
+        function setupEventListeners() {
+            // Vincular inputs de Copia 1 (Superior)
+            const bindingsCopia1 = [
+                { id: 'input-nombre-1', key: 'nombre' },
+                { id: 'input-rut-1', key: 'rut', format: true },
+                { id: 'input-direccion-1', key: 'direccion' },
+                { id: 'input-presentado-1', key: 'presentado' },
+                { id: 'input-dia-1', key: 'dia' },
+                { id: 'input-mes-1', key: 'mes' },
+                { id: 'input-anio-1', key: 'anio' }
+            ];
+
+            bindingsCopia1.forEach(item => {
+                const el = document.getElementById(item.id);
+                el.addEventListener('input', (e) => {
+                    let val = e.target.value;
+                    if (item.format) {
+                        val = formatearRut(val);
+                        el.value = val;
+                    }
+                    state.copia1[item.key] = val;
+                    renderPreviews();
+                });
+            });
+
+            // Número Copia 1 (Superior) con auto-incremento inteligente opcional para la inferior
+            document.getElementById('input-nro-1').addEventListener('input', (e) => {
+                const val = e.target.value;
+                state.copia1.nro = val;
+                if (state.autoIncrement) {
+                    const inc = incrementarNumero(val);
+                    state.copia2.nro = inc;
+                    document.getElementById('input-nro-2').value = inc;
+                }
+                renderPreviews();
+            });
+
+            // Vincular inputs de Copia 2 (Inferior)
+            const bindingsCopia2 = [
+                { id: 'input-nro-2', key: 'nro' },
+                { id: 'input-nombre-2', key: 'nombre' },
+                { id: 'input-rut-2', key: 'rut', format: true },
+                { id: 'input-direccion-2', key: 'direccion' },
+                { id: 'input-presentado-2', key: 'presentado' },
+                { id: 'input-dia-2', key: 'dia' },
+                { id: 'input-mes-2', key: 'mes' },
+                { id: 'input-anio-2', key: 'anio' }
+            ];
+
+            bindingsCopia2.forEach(item => {
+                const el = document.getElementById(item.id);
+                el.addEventListener('input', (e) => {
+                    let val = e.target.value;
+                    if (item.format) {
+                        val = formatearRut(val);
+                        el.value = val;
+                    }
+                    state.copia2[item.key] = val;
+                    renderPreviews();
+                });
+            });
+
+            // Checkbox auto-incremento
+            const autoIncCheck = document.getElementById('auto-inc-checkbox');
+            autoIncCheck.addEventListener('change', (e) => {
+                state.autoIncrement = e.target.checked;
+                if (state.autoIncrement) {
+                    const inc = incrementarNumero(state.copia1.nro);
+                    state.copia2.nro = inc;
+                    document.getElementById('input-nro-2').value = inc;
+                }
+                renderPreviews();
+            });
+
+            // Inputs Directiva Globales (Afectan a ambos)
+            const directivaBindings = [
+                { id: 'input-firmante-nombre', key: 'firmante_nombre' },
+                { id: 'input-firmante-cargo', key: 'firmante_cargo' },
+                { id: 'input-firmante-periodo', key: 'firmante_periodo' }
+            ];
+
+            directivaBindings.forEach(item => {
+                document.getElementById(item.id).addEventListener('input', (e) => {
+                    const val = e.target.value;
+                    state.copia1[item.key] = val;
+                    state.copia2[item.key] = val;
+                    renderPreviews();
+                });
+            });
+
+            // Sliders globales de espaciado
+            document.getElementById('input-logo-size').addEventListener('input', (e) => {
+                const size = e.target.value;
+                state.logoSize = parseInt(size);
+                document.getElementById('logo-size-value').textContent = size;
+                localStorage.setItem('junta_logo_size', size);
+                renderPreviews();
+            });
+
+            document.getElementById('input-certifica-margin').addEventListener('input', (e) => {
+                const margin = e.target.value;
+                state.certificaMargin = parseInt(margin);
+                document.getElementById('certifica-margin-value').textContent = margin;
+                localStorage.setItem('junta_certifica_margin', margin);
+                renderPreviews();
+            });
+
+            // Nuevo listener para el espacio inferior
+            document.getElementById('input-certifica-bottom').addEventListener('input', (e) => {
+                const val = e.target.value;
+                state.certificaBottom = parseInt(val);
+                document.getElementById('certifica-bottom-value').textContent = val;
+                localStorage.setItem('junta_certifica_bottom', val);
+                renderPreviews();
+            });
+
+            document.getElementById('input-fields-gap').addEventListener('input', (e) => {
+                const gap = e.target.value;
+                state.fieldsGap = parseInt(gap);
+                document.getElementById('fields-gap-value').textContent = gap;
+                localStorage.setItem('junta_fields_gap', gap);
+                renderPreviews();
+            });
+
+            document.getElementById('input-line-height').addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                state.lineHeight = val;
+                document.getElementById('line-height-value').textContent = val.toFixed(2);
+                localStorage.setItem('junta_line_height', val);
+                renderPreviews();
+            });
+        }
+
+        // Función auxiliar útil para copiar datos del primero al segundo de manera rápida
+        function copiarSuperiorAInferior() {
+            state.copia2.nombre = state.copia1.nombre;
+            state.copia2.rut = state.copia1.rut;
+            state.copia2.direccion = state.copia1.direccion;
+            state.copia2.presentado = state.copia1.presentado;
+            state.copia2.dia = state.copia1.dia;
+            state.copia2.mes = state.copia1.mes;
+            state.copia2.anio = state.copia1.anio;
+
+            if (state.autoIncrement) {
+                state.copia2.nro = incrementarNumero(state.copia1.nro);
+            } else {
+                state.copia2.nro = state.copia1.nro;
+            }
+
+            actualizarInputsDesdeEstado();
+            renderPreviews();
+            mostrarNotificacion("Se copiaron los datos de Copia Superior a Copia Inferior.", "success");
+        }
+
+        function formatearRut(rut) {
+            // Elimina caracteres no numéricos excepto k/K
+            let valor = rut.replace(/[^0-9kK]/g, '');
+            if (valor.length <= 1) return valor;
+            let cuerpo = valor.slice(0, -1);
+            let dv = valor.slice(-1).toUpperCase();
+            // Formato con puntos
+            cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            return cuerpo + '-' + dv;
+        }
+
+        function syncDateFromPreview(el, field, copiaId) {
+            const val = el.textContent;
+            if (copiaId === 1) {
+                state.copia1[field] = val;
+                const inputEl = document.getElementById(`input-${field}-1`);
+                if (inputEl) inputEl.value = val;
+            } else {
+                state.copia2[field] = val;
+                const inputEl = document.getElementById(`input-${field}-2`);
+                if (inputEl) inputEl.value = val;
+            }
+        }
+
+        function cargarLogo(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                base64Logo = e.target.result;
+                localStorage.setItem('junta_logo_personalizado', base64Logo);
+                document.getElementById('btn-remove-logo').classList.remove('hidden');
+                mostrarNotificacion("Logo subido correctamente.", "success");
+                renderPreviews();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removerLogoPersonalizado() {
+            base64Logo = "";
+            localStorage.removeItem('junta_logo_personalizado');
+            document.getElementById('btn-remove-logo').classList.add('hidden');
+            document.getElementById('input-logo').value = "";
+            mostrarNotificacion("Logo personalizado removido.", "success");
+            renderPreviews();
+        }
+
+        function loadLogoFromLocalStorage() {
+            const storedLogo = localStorage.getItem('junta_logo_personalizado');
+            if (storedLogo) {
+                base64Logo = storedLogo;
+                document.getElementById('btn-remove-logo').classList.remove('hidden');
+            }
+
+            const storedSize = localStorage.getItem('junta_logo_size');
+            if (storedSize) {
+                state.logoSize = parseInt(storedSize);
+                document.getElementById('input-logo-size').value = storedSize;
+                document.getElementById('logo-size-value').textContent = storedSize;
+            }
+
+            const storedCertifica = localStorage.getItem('junta_certifica_margin');
+            if (storedCertifica) {
+                state.certificaMargin = parseInt(storedCertifica);
+                document.getElementById('input-certifica-margin').value = storedCertifica;
+                document.getElementById('certifica-margin-value').textContent = storedCertifica;
+            }
+
+            const storedCertificaBottom = localStorage.getItem('junta_certifica_bottom');
+            if (storedCertificaBottom) {
+                state.certificaBottom = parseInt(storedCertificaBottom);
+                document.getElementById('input-certifica-bottom').value = storedCertificaBottom;
+                document.getElementById('certifica-bottom-value').textContent = storedCertificaBottom;
+            }
+
+            const storedGap = localStorage.getItem('junta_fields_gap');
+            if (storedGap) {
+                state.fieldsGap = parseInt(storedGap);
+                document.getElementById('input-fields-gap').value = storedGap;
+                document.getElementById('fields-gap-value').textContent = storedGap;
+            }
+
+            const storedLineHeight = localStorage.getItem('junta_line_height');
+            if (storedLineHeight) {
+                state.lineHeight = parseFloat(storedLineHeight);
+                document.getElementById('input-line-height').value = storedLineHeight;
+                document.getElementById('line-height-value').textContent = state.lineHeight.toFixed(2);
+            }
+
+            const storedCustomLines = localStorage.getItem('junta_custom_lines');
+            if (storedCustomLines) {
+                state.customLines = JSON.parse(storedCustomLines);
+            }
+        }
+
+        function updateSpan(id, value, fallbackLength = 40) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            
+            if (value && value.trim() !== "") {
+                el.textContent = value;
+                el.className = "address-text-flow text-slate-950";
+            } else {
+                // Línea continua de puntos para rellenar a mano al imprimir
+                el.textContent = " " + ".".repeat(fallbackLength) + " ";
+                el.className = "text-slate-400 select-none tracking-widest break-all font-mono text-[11px]";
+            }
+        }
+
+        function renderPreviews() {
+            document.querySelectorAll('.half-sheet').forEach(sheet => {
+                sheet.style.setProperty('--cert-line-height', state.lineHeight);
+            });
+
+            const container1 = document.getElementById('logo-container-1');
+            const container2 = document.getElementById('logo-container-2');
+
+            if (base64Logo) {
+                container1.style.display = 'flex';
+                container2.style.display = 'flex';
+                container1.style.width = `${state.logoSize}px`;
+                container1.style.height = `${state.logoSize}px`;
+                container2.style.width = `${state.logoSize}px`;
+                container2.style.height = `${state.logoSize}px`;
+
+                const logoContent = `<img src="${base64Logo}" style="width: 100%; height: 100%;" class="object-contain rounded-md" alt="Logo Junta" onerror="removerLogoPersonalizado()">`;
+                container1.innerHTML = logoContent;
+                container2.innerHTML = logoContent;
+            } else {
+                container1.style.display = 'none';
+                container2.style.display = 'none';
+                container1.innerHTML = "";
+                container2.innerHTML = "";
+            }
+
+            const labelCert1 = document.getElementById('preview-certifica-lbl-1');
+            const labelCert2 = document.getElementById('preview-certifica-lbl-2');
+            if (labelCert1 && labelCert2) {
+                labelCert1.style.marginTop = `${state.certificaMargin}px`;
+                labelCert1.style.marginBottom = `${state.certificaBottom}px`;
+                labelCert2.style.marginTop = `${state.certificaMargin}px`;
+                labelCert2.style.marginBottom = `${state.certificaBottom}px`;
+            }
+
+            const linesCont1 = document.getElementById('lines-container-1');
+            const linesCont2 = document.getElementById('lines-container-2');
+            if (linesCont1 && linesCont2) {
+                linesCont1.style.gap = `${state.fieldsGap}px`;
+                linesCont2.style.gap = `${state.fieldsGap}px`;
+            }
+
+            // Inyectar datos principales: Copia Superior (1)
+            document.getElementById('preview-nro-1').textContent = state.copia1.nro || "";
+            updateSpan('preview-nombre-1', state.copia1.nombre, 45);
+            updateSpan('preview-rut-1', state.copia1.rut, 18);
+            updateSpan('preview-direccion-1', state.copia1.direccion, 70);
+            updateSpan('preview-presentado-1', state.copia1.presentado, 50);
+
+            document.getElementById('preview-dia-1').textContent = state.copia1.dia || "";
+            document.getElementById('preview-mes-1').textContent = state.copia1.mes || "";
+            document.getElementById('preview-anio-1').textContent = state.copia1.anio || "";
+            document.getElementById('preview-firmante-nombre-1').textContent = state.copia1.firmante_nombre;
+            document.getElementById('preview-firmante-cargo-1').textContent = state.copia1.firmante_cargo;
+            document.getElementById('preview-firmante-periodo-1').textContent = state.copia1.firmante_periodo;
+
+            // Inyectar datos principales: Copia Inferior (2)
+            document.getElementById('preview-nro-2').textContent = state.copia2.nro || "";
+            updateSpan('preview-nombre-2', state.copia2.nombre, 45);
+            updateSpan('preview-rut-2', state.copia2.rut, 18);
+            updateSpan('preview-direccion-2', state.copia2.direccion, 70);
+            updateSpan('preview-presentado-2', state.copia2.presentado, 50);
+
+            document.getElementById('preview-dia-2').textContent = state.copia2.dia || "";
+            document.getElementById('preview-mes-2').textContent = state.copia2.mes || "";
+            document.getElementById('preview-anio-2').textContent = state.copia2.anio || "";
+            document.getElementById('preview-firmante-nombre-2').textContent = state.copia2.firmante_nombre;
+            document.getElementById('preview-firmante-cargo-2').textContent = state.copia2.firmante_cargo;
+            document.getElementById('preview-firmante-periodo-2').textContent = state.copia2.firmante_periodo;
+
+            // Renderizar Filas Extras Personalizadas
+            renderFilasExtrasPreview(1);
+            renderFilasExtrasPreview(2);
+        }
+
+        function renderFilasExtrasPreview(copiaId) {
+            const container = document.getElementById(`extra-fields-container-${copiaId}`);
+            if (!container) return;
+            
+            if (state.customLines.length === 0) {
+                container.innerHTML = "";
+                return;
+            }
+
+            container.innerHTML = " " + state.customLines.map(line => {
+                const val = (copiaId === 1) ? line.value : (line.value2 !== undefined ? line.value2 : line.value);
+                const textValue = (val && val.trim() !== "") ? val : ".".repeat(30);
+                const dynamicClass = (val && val.trim() !== "") ? "address-text-flow text-slate-950" : "text-slate-400 select-none tracking-widest break-all font-mono text-[11px]";
+                
+                return `
+                    <span class="font-bold">. ${line.label} </span>
+                    <span class="${dynamicClass}">${textValue}</span>
+                `;
+            }).join('');
+        }
+
+        function crearNuevaLinea() {
+            const nueva = {
+                id: crypto.randomUUID(),
+                label: 'Ocupación:',
+                value: '',
+                value2: ''
+            };
+            state.customLines.push(nueva);
+            guardarLineasEnStorage();
+            renderFormularioLineasPersonalizadas();
+            renderPreviews();
+            mostrarNotificacion("Nueva fila de relleno añadida.", "success");
+        }
+
+        function eliminarLinea(id) {
+            state.customLines = state.customLines.filter(l => l.id !== id);
+            guardarLineasEnStorage();
+            renderFormularioLineasPersonalizadas();
+            renderPreviews();
+            mostrarNotificacion("Fila de relleno removida.", "success");
+        }
+
+        function actualizarLinea(id, campo, valor, copiaId = 1) {
+            const index = state.customLines.findIndex(l => l.id === id);
+            if (index !== -1) {
+                if (campo === 'label') {
+                    state.customLines[index].label = valor;
+                } else {
+                    if (copiaId === 1) {
+                        state.customLines[index].value = valor;
+                    } else {
+                        state.customLines[index].value2 = valor;
+                    }
+                }
+                guardarLineasEnStorage();
+                renderPreviews();
+            }
+        }
+
+        function guardarLineasEnStorage() {
+            localStorage.setItem('junta_custom_lines', JSON.stringify(state.customLines));
+        }
+
+        function renderFormularioLineasPersonalizadas() {
+            const container = document.getElementById('custom-lines-container');
+            if (state.customLines.length === 0) {
+                container.innerHTML = `<p class="text-[11px] text-slate-500 text-center py-2">Ninguna fila de relleno extra creada.</p>`;
+                return;
+            }
+
+            container.innerHTML = state.customLines.map(line => {
+                return `
+                    <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 space-y-2 relative group">
+                        <button onclick="eliminarLinea('${line.id}')" class="absolute top-1.5 right-1.5 text-slate-500 hover:text-rose-400 p-1 rounded transition" title="Eliminar fila">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                        
+                        <div class="space-y-1.5 pt-1.5">
+                            <div>
+                                <label class="block text-[9px] font-bold text-slate-400 uppercase">Etiqueta Fila</label>
+                                <input type="text" value="${line.label}" oninput="actualizarLinea('${line.id}', 'label', this.value)" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none">
+                            </div>
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <div>
+                                    <label class="block text-[9px] font-bold text-emerald-400 uppercase">Texto Sup (C1)</label>
+                                    <input type="text" value="${line.value || ''}" placeholder="Copia Superior" oninput="actualizarLinea('${line.id}', 'value', this.value, 1)" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-amber-400 uppercase">Texto Inf (C2)</label>
+                                    <input type="text" value="${line.value2 || ''}" placeholder="Copia Inferior" oninput="actualizarLinea('${line.id}', 'value2', this.value, 2)" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Carga ejemplos diferentes y lógicos en ambas mitades
+        function cargarEjemplo() {
+            const hoy = new Date();
+            const diaStr = String(hoy.getDate());
+            const mesStr = meses[hoy.getMonth()];
+            const anioStr = String(hoy.getFullYear());
+
+            state.copia1 = {
+                nro: '482/26',
+                nombre: 'CARLOS ALBERTO RETAMALES GÓMEZ',
+                rut: '12.345.678-9',
+                direccion: 'Pasaje Los Alerces N° 1240, Sector Alto de Cerro Amarillo, Concepción',
+                presentado: 'Ilustre Municipalidad de Concepción para subsidio habitacional',
+                dia: diaStr,
+                mes: mesStr,
+                anio: anioStr,
+                firmante_nombre: 'María Isabel Irigoyen Durán',
+                firmante_cargo: 'TESORERA',
+                firmante_periodo: 'Directorio 2026 - 2029'
+            };
+
+            state.copia2 = {
+                nro: '483/26',
+                nombre: 'MARÍA ELISA FUENTES CONTRERAS',
+                rut: '16.882.441-2',
+                direccion: 'Calle O\'Higgins N° 580, Departamento 402, Centro de Concepción',
+                presentado: 'Dirección del Trabajo para acreditación de cargas familiares',
+                dia: diaStr,
+                mes: mesStr,
+                anio: anioStr,
+                firmante_nombre: 'María Isabel Irigoyen Durán',
+                firmante_cargo: 'TESORERA',
+                firmante_periodo: 'Directorio 2026 - 2029'
+            };
+
+            state.customLines = [
+                {
+                    id: crypto.randomUUID(),
+                    label: 'Ocupación:',
+                    value: 'Carpintero y Constructor Civil',
+                    value2: 'Asistente de Párvulos'
+                }
+            ];
+            guardarLineasEnStorage();
+
+            actualizarInputsDesdeEstado();
+            renderPreviews();
+            mostrarNotificacion("Datos de prueba diferentes cargados en ambas hojas.");
+        }
+
+        function limpiarCampos() {
+            const camposVacios = {
+                nro: '',
+                nombre: '',
+                rut: '',
+                direccion: '',
+                presentado: '',
+                dia: '',
+                mes: '',
+                anio: '', 
+                firmante_nombre: 'María Isabel Irigoyen Durán',
+                firmante_cargo: 'TESORERA',
+                firmante_periodo: 'Directorio 2026 - 2029'
+            };
+
+            state.copia1 = { ...camposVacios };
+            state.copia2 = { ...camposVacios };
+            state.customLines = [];
+            guardarLineasEnStorage();
+
+            actualizarInputsDesdeEstado();
+            renderPreviews();
+            mostrarNotificacion("Campos limpiados correctamente.");
+        }
+    </script>
+</body>
+</html>
