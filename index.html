@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Certificado de Residencia – Junta de Vecinos N°7</title>
+<title>Certificado de Residencia Profesional</title>
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -418,7 +418,7 @@ select option { background: #1a2e22; }
 <div id="app">
 <!-- ═══ PANEL ═══ -->
 <div id="panel">
-  <div id="panel-title">✦ Certificado de Residencia — Junta de Vecinos N°7, Cerro Amarillo, Concepción</div>
+  <div id="panel-title">✦ Certificado de Residencia Profesional</div>
   <div class="tabs">
     <button class="tab-btn active" onclick="showTab(event,'tab-datos')">📝 Datos</button>
     <button class="tab-btn"        onclick="showTab(event,'tab-fuentes')">🔤 Fuentes</button>
@@ -742,7 +742,7 @@ function buildBody(nombre, rut, domicilio, presentadoEn) {
 
   /* Todo el texto es UN bloque fluido. Los <span class="f"> llevan el subrayado.
      No hay divs con border-bottom. El texto fluye como en el original impreso. */
-  return `<em>La Junta de Vecinos N° 7, Cerro Amarillo de Concepción, Personalidad Jurídica N° 378 de 20 de marzo de 1972,</em><br><em>Certifica que don(ña): </em>${f(nombre,pN)}<em>, R.U.T. </em>${f(rut,pR)}<em>, tiene domicilio vigente en: </em>${f(domicilio,pD)}<em>, Comuna de Concepción.</em><br><em>Se extiende el presente certificado, a solicitud del (la) interesado(a) para ser presentado en: </em>${f(presentadoEn,pP)}<em>, como acreditación de su domicilio.</em><br><br><em>Certificado con validez de 30 días, a contar de esta fecha de emisión.</em>`;
+  return `<em>La Junta de Vecinos N° 7 "Cerro Amarillo" de Concepción, Personalidad Jurídica N° 378 de 20 de marzo de 1972,</em><br><em>Certifica que don(ña): </em>${f(nombre,pN)}<em>, R.U.T. </em>${f(rut,pR)}<em>, tiene domicilio vigente en: </em>${f(domicilio,pD)}<em>, Comuna de Concepción.</em><br><em>Se extiende el presente certificado, a solicitud del (la) interesado(a) para ser presentado en: </em>${f(presentadoEn,pP)}<em>, como acreditación de su domicilio.</em><br><br><em>Certificado con validez de 30 días, a contar de esta fecha de emisión.</em>`;
 }
 
 function buildDate(dia, mes, anio, ciudad) {
