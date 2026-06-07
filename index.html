@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certificado de Residencia – Junta de Vecinos N°7</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #b8b5b0;
+  min-height: 100vh;
+  font-family: 'Crimson Text', serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ══ LAYOUT DESKTOP: panel fijo izquierda + A4 derecha ══ */
+#app {
+  display: flex;
+  flex: 1;
+  min-height: 100vh;
+}
+
+/* ══ PANEL ══ */
+#panel {
+  width: 360px;
+  flex-shrink: 0;
+  background: #1a2e22; color: #eee;
+  padding: 16px 20px 20px;
+  display: flex; flex-direction: column; gap: 10px;
+  overflow-y: auto;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+}
+#panel-title {
+  font-size: .82rem; letter-spacing: .13em; text-transform: uppercase;
+  color: #8fc98f; border-bottom: 1px solid #2e4d38; padding-bottom: 7px;
+  font-family: Arial, sans-serif;
+}
+.tabs { display: flex; gap: 3px; }
+.tab-btn {
+  background: #243830; border: 1px solid #3a5545; color: #8fc98f;
+  font-family: Arial, sans-serif; font-size: .74rem;
+  padding: 5px 13px; border-radius: 2px 2px 0 0; cursor: pointer;
+}
+.tab-btn.active { background: #3a5545; color: #c8f0c8; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+.fg-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px 12px; margin-top: 10px; }
+.fg { display: flex; flex-direction: column; gap: 3px; }
+.fg.full  { grid-column: 1/-1; }
+.fg.span2 { grid-column: span 2; }
+label { font-size: .64rem; letter-spacing: .08em; text-transform: uppercase; color: #8fc98f; font-family: Arial, sans-serif; }
+input[type=text], input[type=number], select {
+  background: #243830; border: 1px solid #3a5545; border-radius: 2px;
+  color: #eee; font-family: Arial, sans-serif; font-size: .86rem;
+  padding: 5px 8px; outline: none; width: 100%; transition: border-color .15s;
+}
+input:focus, select:focus { border-color: #8fc98f; }
+select option { background: #1a2e22; }
+.logo-row { display: flex; align-items: center; gap: 10px; }
+#logoPreview { width: 38px; height: 38px; border-radius: 50%; object-fit: contain; border: 1px solid #3a5545; background: #243830; display: none; }
+.upload-btn { background: #243830; border: 1px dashed #3a5545; color: #8fc98f; font-size: .74rem; padding: 4px 10px; border-radius: 2px; cursor: pointer; font-family: Arial, sans-serif; }
+/* ── tab fuentes ── */
+.font-grid {
+  display: grid;
+  grid-template-columns: 1fr;   /* 1 col base: cada row ocupa ancho completo */
+  gap: 10px 0;
+  margin-top: 10px;
+}
+.font-row {
+  display: grid;
+  grid-template-columns: 110px 1fr;  /* label col | controles */
+  align-items: center;
+  gap: 0 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid #2a4035;
+}
+.font-row > label {
+  font-size: .65rem; letter-spacing: .07em; text-transform: uppercase;
+  color: #8fc98f; font-family: Arial, sans-serif;
+  padding-right: 4px;
+  line-height: 1.3;
+}
+.font-controls-col {
+  display: flex; flex-direction: column; gap: 5px;
+}
+.font-inner { display: flex; gap: 6px; align-items: center; }
+.font-inner select { flex: 1; min-width: 0; }
+.font-inner input[type=number] { width: 52px; flex-shrink: 0; }
+.range-row { display: flex; align-items: center; gap: 6px; }
+.range-row input[type=range] { flex: 1; accent-color: #8fc98f; height: 3px; }
+.range-row .rlbl { font-size: .68rem; color: #8fc98f; min-width: 44px; text-align: right; font-family: Arial, sans-serif; }
+
+/* sliders grid: 2 col en desktop, 1 col mobile */
+.sliders-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 14px;
+  margin-top: 6px;
+}
+.slider-item { display: flex; flex-direction: column; gap: 4px; }
+.slider-label-row { display: flex; justify-content: space-between; align-items: center; }
+.slider-label-row label { font-size: .65rem; color: #8fc98f; text-transform: uppercase; letter-spacing: .06em; font-family: Arial, sans-serif; }
+.slider-item input[type=range] { width: 100%; accent-color: #8fc98f; }
+.rval { font-size: .68rem; color: #8fc98f; font-family: Arial, sans-serif; }
+
+/* fgroup acordeón */
+.fgroup { border: 1px solid #2a4035; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+.fgroup-header {
+  width: 100%; background: #243830; border: none; color: #8fc98f;
+  font-family: Arial, sans-serif; font-size: .76rem; letter-spacing: .06em;
+  text-transform: uppercase; padding: 8px 12px;
+  display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer;
+}
+.fgroup-header:hover { background: #2e4a3a; }
+.fgroup-arrow { transition: transform .2s; }
+.fgroup-body { padding: 10px 12px; background: #1a2e22; }
+.fgroup-body.collapsed { display: none; }
+
+/* ── responsive tab fuentes ── */
+/* tablet ≤ 1024: misma disposición pero sliders en 1 col */
+@media (max-width: 1024px) {
+  .font-row { grid-template-columns: 90px 1fr; }
+  .sliders-grid { grid-template-columns: 1fr; }
+}
+/* mobile ≤ 480: label sobre controles */
+@media (max-width: 480px) {
+  .font-row { grid-template-columns: 1fr; gap: 4px 0; }
+  .font-row > label { padding-bottom: 2px; }
+  .sliders-grid { grid-template-columns: 1fr; }
+  .fgroup-header { font-size: .7rem; padding: 7px 10px; }
+}
+.btn-row { display: flex; gap: 9px; margin-top: 12px; flex-wrap: wrap; }
+.btn { font-family: Arial, sans-serif; font-size: .8rem; padding: 7px 17px; border: none; border-radius: 2px; cursor: pointer; transition: opacity .15s; }
+.btn:hover { opacity: .83; }
+.btn-print  { background: #c8a030; color: #111; font-weight: 700; }
+.btn-sheets { background: #2d8653; color: #fff; }
+.btn-cfg    { background: #243830; color: #8fc98f; border: 1px solid #3a5545; }
+.btn-pdf    { background: #1a6b9a; color: #fff; }
+#sheetStatus { font-size: .72rem; color: #8fc98f; margin-top: 5px; font-family: Arial, sans-serif; min-height: 14px; }
+#sheetsConfig { display: none; background: #111e16; border: 1px solid #3a5545; border-radius: 3px; padding: 10px 12px; margin-top: 8px; }
+#sheetsConfig p { font-size: .72rem; color: #9fbf9f; line-height: 1.5; margin-bottom: 7px; font-family: Arial, sans-serif; }
+#sheetsConfig a { color: #8fc98f; }
+#scriptCode { display: none; margin-top: 7px; background: #0a1209; color: #9fbf9f; font-size: .69rem; padding: 8px 10px; border-radius: 3px; white-space: pre-wrap; font-family: monospace; line-height: 1.5; }
+
+/* ══ A4 ══ */
+#preview-area {
+  flex: 1;
+  padding: 28px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: #b0ada8;
+  overflow-y: auto;
+  min-height: 100vh;
+}
+.a4-page {
+  width: 794px; height: 1123px; background: #fff;
+  box-shadow: 0 4px 28px rgba(0,0,0,.45);
+  display: flex; flex-direction: column; position: relative;
+}
+.cut-line { position: absolute; top: 50%; left: 0; right: 0; border-top: 1px dashed #999; z-index: 20; pointer-events: none; }
+.cut-scissors { position: absolute; top: 50%; left: 6px; transform: translateY(-50%); font-size: 14px; color: #999; background: #fff; padding: 1px 3px; line-height:1; }
+.cut-text { position: absolute; top: 50%; right: 10px; transform: translateY(-50%); font-size: 8px; color: #aaa; background: #fff; padding: 1px 4px; font-family: Arial, sans-serif; letter-spacing: .06em; }
+
+/* cada mitad */
+.cert {
+  flex: 0 0 50%; height: 50%;
+  padding: 26px 50px 18px 42px;
+  display: flex; flex-direction: column;
+  background: #fff; overflow: hidden;
+}
+
+/* header */
+.cert-header { display: flex; align-items: center; margin-bottom: 18px; }
+.logo-wrap-cert { flex-shrink: 0; width: 90px; display: flex; align-items: center; }
+.cert-logo { width: 82px; height: 82px; border-radius: 50%; object-fit: contain; }
+.cert-logo-ph { width: 82px; height: 82px; border-radius: 50%; border: 1.5px dashed #bbb; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #bbb; text-align: center; line-height: 1.4; font-family: Arial,sans-serif; }
+.cert-title-center { flex:1; text-align: center; }
+.cert-title { font-style: italic; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; white-space: nowrap; display: inline-block; }
+.cert-num-right { flex-shrink: 0; width: 90px; text-align: right; font-style: italic; padding-top: 2px; }
+
+/* ══ CUERPO ══ */
+.cert-body {
+  font-style: italic;
+  flex: 0 0 auto;
+  line-height: 2.1;
+  word-wrap: break-word;
+  text-align: justify;
+  margin-bottom: 10px;
+}
+.f {
+  display: inline;
+  border-bottom: 1px solid #111;
+  font-weight: 600;
+  font-style: italic;
+}
+.cert-body p { display: block; }
+
+/* ══ PIE ══ */
+.cert-bottom { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 0; flex-shrink: 0; padding-top: 6px; }
+.cert-date { font-style: italic; white-space: nowrap; }
+.signature-block { text-align: center; min-width: 230px; }
+.sign-dots { font-style: italic; letter-spacing: .04em; margin-bottom: 2px; }
+.sign-name { font-style: italic; font-weight: 600; line-height: 1.3; }
+.sign-role { font-style: italic; }
+
+/* ══ DESKTOP GRANDE (>1280px): panel más ancho ══ */
+@media (min-width: 1280px) {
+  #panel { width: 400px; }
+  .fg-grid { grid-template-columns: repeat(2,1fr); }
+  .font-grid { grid-template-columns: repeat(2,1fr); }
+}
+
+/* ══ DESKTOP NORMAL (1025px–1279px) ══ */
+@media (min-width: 1025px) and (max-width: 1279px) {
+  #panel { width: 340px; }
+  .fg-grid { grid-template-columns: repeat(2,1fr); }
+  .font-grid { grid-template-columns: repeat(2,1fr); }
+}
+
+/* ══ TABLET LANDSCAPE (768px–1024px) ══ */
+@media (max-width: 1024px) {
+  #app { flex-direction: column; }
+  #panel {
+    width: 100%; height: auto; position: relative;
+    padding: 14px 22px 16px;
+    flex-direction: column;
+  }
+  .fg-grid { grid-template-columns: repeat(3, 1fr); }
+  .fg.full  { grid-column: 1 / -1; }
+  .fg.span2 { grid-column: span 2; }
+  .font-grid { grid-template-columns: repeat(3, 1fr); }
+  .tabs { flex-wrap: wrap; }
+  #preview-area { padding: 20px 16px; min-height: auto; }
+  .a4-page {
+    width: min(700px, 90vw);
+    height: auto;
+    aspect-ratio: 210 / 297;
+  }
+  .cert { height: 50%; padding: 3% 7% 2% 6%; }
+  .cert-title { font-size: 2.8vw !important; }
+  .cert-body  { font-size: 1.6vw !important; line-height: 2 !important; }
+  .cert-logo, .cert-logo-ph { width: 8vw !important; height: 8vw !important; }
+  .logo-wrap-cert { width: calc(8vw + 8px) !important; }
+  .cert-num-right { font-size: 1.8vw !important; width: auto !important; }
+  .sign-name  { font-size: 1.6vw !important; }
+  .sign-role, .sign-dots { font-size: 1.4vw !important; }
+  .cert-date  { font-size: 1.4vw !important; white-space: normal !important; }
+  .cert-bottom { flex-direction: column; align-items: flex-end; gap: 4px; }
+}
+
+/* ══ TABLET PORTRAIT (481px–767px) ══ */
+@media (max-width: 767px) {
+  .fg-grid { grid-template-columns: 1fr 1fr; }
+  .fg.full  { grid-column: 1 / -1; }
+  .fg.span2 { grid-column: 1 / -1; }
+  .font-grid { grid-template-columns: 1fr 1fr; }
+  .font-inner { flex-direction: column; }
+  .font-inner input[type=number] { width: 100%; }
+  #panel { padding: 12px 16px 14px; }
+  #panel-title { font-size: .74rem; }
+  .tab-btn { font-size: .7rem; padding: 5px 10px; }
+  .btn { font-size: .76rem; padding: 6px 14px; }
+  #preview-area { padding: 16px 8px; }
+  .a4-page {
+    width: min(560px, 96vw);
+    height: auto;
+    aspect-ratio: 210 / 297;
+  }
+  .cert { height: 50%; padding: 3% 6% 2% 5%; }
+  .cert-title { font-size: 3.4vw !important; letter-spacing: .08em !important; }
+  .cert-body  { font-size: 2vw !important; line-height: 1.95 !important; }
+  .cert-logo, .cert-logo-ph { width: 10vw !important; height: 10vw !important; }
+  .logo-wrap-cert { width: calc(10vw + 6px) !important; }
+  .cert-num-right { font-size: 2.2vw !important; width: auto !important; }
+  .sign-name  { font-size: 2vw !important; }
+  .sign-role, .sign-dots { font-size: 1.8vw !important; }
+  .cert-date  { font-size: 1.8vw !important; white-space: normal !important; }
+  .cert-bottom { flex-direction: column; align-items: flex-end; gap: 4px; }
+  .signature-block { min-width: 0; width: 60%; }
+}
+
+/* ══ MOBILE (≤480px) ══ */
+@media (max-width: 480px) {
+  #panel { padding: 10px 12px 12px; gap: 8px; }
+  #panel-title { font-size: .68rem; }
+  .tab-btn { font-size: .65rem; padding: 4px 8px; }
+  .btn { font-size: .72rem; padding: 6px 11px; }
+  .btn-row { gap: 6px; }
+  .fg-grid { grid-template-columns: 1fr; gap: 7px 0; }
+  .fg.full, .fg.span2 { grid-column: 1 / -1; }
+  .font-grid { grid-template-columns: 1fr; }
+  .range-row span { min-width: 40px; font-size: .66rem; }
+  #preview-area { padding: 10px 4px; }
+  .a4-page {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 210 / 297;
+    box-shadow: 0 2px 12px rgba(0,0,0,.35);
+  }
+  .cert { height: 50%; padding: 2.5% 5% 1.5% 4%; overflow: hidden; }
+  .cert-header { margin-bottom: 10px; }
+  .cert-title { font-size: 4vw !important; letter-spacing: .06em !important; }
+  .cert-body  { font-size: 2.5vw !important; line-height: 1.85 !important; }
+  .cert-logo, .cert-logo-ph { width: 12vw !important; height: 12vw !important; }
+  .logo-wrap-cert { width: calc(12vw + 4px) !important; }
+  .cert-num-right { font-size: 2.8vw !important; width: auto !important; }
+  .cert-bottom { flex-direction: column; align-items: flex-end; gap: 2px; margin-top: 2px; }
+  .signature-block { min-width: 0; width: 65%; }
+  .sign-name  { font-size: 2.5vw !important; }
+  .sign-role, .sign-dots { font-size: 2.2vw !important; }
+  .cert-date  { font-size: 2.2vw !important; white-space: normal !important; }
+}
+
+@media print {
+  @page { size: A4; margin: 0; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { background: white; }
+  #panel { display: none !important; }
+  #preview-area { padding: 0; background: white; display: block; }
+  .a4-page {
+    width: 210mm; height: 297mm;
+    box-shadow: none;
+    page-break-after: avoid;
+    overflow: hidden;
+  }
+  .cert { padding: 22px 44px 16px 38px; }
+  .cut-line { border-top: 1px dashed #999 !important; }
+  .f { border-bottom: 1px solid #111 !important; }
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+<!-- ═══ PANEL ═══ -->
+<div id="panel">
+  <div id="panel-title">✦ Certificado de Residencia — Junta de Vecinos N°7, Cerro Amarillo, Concepción</div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab(event,'tab-datos')">📝 Datos</button>
+    <button class="tab-btn"        onclick="showTab(event,'tab-fuentes')">🔤 Fuentes</button>
+    <button class="tab-btn"        onclick="showTab(event,'tab-sheets')">📊 Google Sheets</button>
+  </div>
+
+  <!-- DATOS -->
+  <div id="tab-datos" class="tab-pane active">
+    <div class="fg-grid">
+      <div class="fg span2">
+        <label>Logo de la Junta</label>
+        <div class="logo-row">
+          <img id="logoPreview" src="" alt="">
+          <label class="upload-btn" for="logoInput">📂 Subir logo…</label>
+          <input type="file" id="logoInput" accept="image/*" style="display:none">
+        </div>
+      </div>
+      <div class="fg">
+        <label>N° Certificado</label>
+        <input type="text" id="numCert" placeholder="001" maxlength="12">
+      </div>
+      <div class="fg full">
+        <label>Nombre completo — Certifica que don(ña)</label>
+        <input type="text" id="nombre" placeholder="Juan Carlos Pérez González">
+      </div>
+      <div class="fg span2">
+        <label>R.U.T.</label>
+        <input type="text" id="rut" placeholder="12.345.678-9">
+      </div>
+      <div class="fg full">
+        <label>Domicilio vigente</label>
+        <input type="text" id="domicilio" placeholder="Calle / Pasaje / N° / Villa / Sector…">
+      </div>
+      <div class="fg full">
+        <label>Para ser presentado en</label>
+        <input type="text" id="presentadoEn" placeholder="Institución, empresa, organismo…">
+      </div>
+      <div class="fg span2">
+        <label>Ciudad del otorgado</label>
+        <input type="text" id="ciudadOtorgado" placeholder="Concepción" value="Concepción">
+      </div>
+      <div class="fg">
+        <label>Día</label>
+        <input type="number" id="dia" min="1" max="31" placeholder="día">
+      </div>
+      <div class="fg span2">
+        <label>Mes</label>
+        <select id="mes">
+          <option value="">— mes —</option>
+          <option>enero</option><option>febrero</option><option>marzo</option>
+          <option>abril</option><option>mayo</option><option>junio</option>
+          <option>julio</option><option>agosto</option><option>septiembre</option>
+          <option>octubre</option><option>noviembre</option><option>diciembre</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Año</label>
+        <input type="number" id="anio" min="2024" max="2099" placeholder="año">
+      </div>
+      <div class="fg full" style="border-top:1px solid #2e4d38;margin-top:4px;padding-top:8px;">
+        <label>— Datos de la firma —</label>
+      </div>
+      <div class="fg full">
+        <label>Nombre de quien firma</label>
+        <input type="text" id="firmaNombre" placeholder="Benjamín Ángel Muñoz Osses" value="Benjamín Ángel Muñoz Osses">
+      </div>
+      <div class="fg span2">
+        <label>Cargo</label>
+        <input type="text" id="firmaCargo" placeholder="PRESIDENTE" value="PRESIDENTE">
+      </div>
+      <div class="fg span2">
+        <label>Directorio (ej: 2026 – 2029)</label>
+        <input type="text" id="firmaDirectorio" placeholder="2026 – 2029" value="2026 – 2029">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-print" onclick="window.print()">🖨️ Imprimir</button>
+      <button class="btn btn-pdf" onclick="guardarPDF()">📄 Guardar como PDF</button>
+    </div>
+    <div id="print-tip" style="font-size:.68rem;color:#7aab7a;margin-top:6px;font-family:Arial,sans-serif;">
+      💡 En el diálogo de impresión, elige <strong style="color:#a8c89a;">Guardar como PDF</strong> en lugar de una impresora física.
+    </div>
+  </div>
+
+  <!-- FUENTES -->
+  <div id="tab-fuentes" class="tab-pane">
+
+    <!-- Grupo: Tipografías -->
+    <div class="fgroup">
+      <button class="fgroup-header" onclick="toggleFgroup(this)">
+        <span>🔤 Tipografías</span><span class="fgroup-arrow">▾</span>
+      </button>
+      <div class="fgroup-body">
+        <div class="font-grid">
+
+          <div class="font-row">
+            <label>Título</label>
+            <div class="font-controls-col">
+              <div class="font-inner">
+                <select id="ff-titulo" onchange="applyFonts()">
+                  <option value="'Crimson Text',serif">Crimson Text</option>
+                  <option value="'EB Garamond',serif">EB Garamond</option>
+                  <option value="'Libre Baskerville',serif">Libre Baskerville</option>
+                  <option value="'Lora',serif">Lora</option>
+                  <option value="Georgia,serif">Georgia</option>
+                  <option value="'Times New Roman',serif">Times New Roman</option>
+                </select>
+                <input type="number" id="fs-titulo" value="21" min="10" max="38" title="px" onchange="applyFonts()">
+              </div>
+              <div class="range-row">
+                <input type="range" id="ls-titulo" min="0" max="50" value="18" oninput="applyFonts(); rl('ls-titulo','ls-lbl',v=>v+'/100em')">
+                <span id="ls-lbl" class="rlbl">18/100em</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="font-row">
+            <label>Cuerpo</label>
+            <div class="font-controls-col">
+              <div class="font-inner">
+                <select id="ff-cuerpo" onchange="applyFonts()">
+                  <option value="'Crimson Text',serif">Crimson Text</option>
+                  <option value="'EB Garamond',serif">EB Garamond</option>
+                  <option value="'Libre Baskerville',serif">Libre Baskerville</option>
+                  <option value="'Lora',serif">Lora</option>
+                  <option value="Georgia,serif">Georgia</option>
+                  <option value="'Times New Roman',serif">Times New Roman</option>
+                </select>
+                <input type="number" id="fs-cuerpo" value="15" min="8" max="26" title="px" onchange="applyFonts()">
+              </div>
+              <div class="range-row">
+                <input type="range" id="lh-cuerpo" min="15" max="40" value="26" oninput="applyFonts(); rl('lh-cuerpo','lh-lbl',v=>(v/10).toFixed(1))">
+                <span id="lh-lbl" class="rlbl">2.6</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="font-row">
+            <label>N°, Fecha<br>y Firma</label>
+            <div class="font-controls-col">
+              <div class="font-inner">
+                <select id="ff-misc" onchange="applyFonts()">
+                  <option value="'Crimson Text',serif">Crimson Text</option>
+                  <option value="'EB Garamond',serif">EB Garamond</option>
+                  <option value="'Libre Baskerville',serif">Libre Baskerville</option>
+                  <option value="'Lora',serif">Lora</option>
+                  <option value="Georgia,serif">Georgia</option>
+                  <option value="'Times New Roman',serif">Times New Roman</option>
+                </select>
+                <input type="number" id="fs-misc" value="14" min="8" max="22" title="px" onchange="applyFonts()">
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Grupo: Ajustes visuales -->
+    <div class="fgroup">
+      <button class="fgroup-header" onclick="toggleFgroup(this)">
+        <span>⚙️ Ajustes visuales</span><span class="fgroup-arrow">▾</span>
+      </button>
+      <div class="fgroup-body">
+        <div class="sliders-grid">
+
+          <div class="slider-item">
+            <div class="slider-label-row">
+              <label>Tamaño logo</label>
+              <span id="logosz-lbl" class="rval">82px</span>
+            </div>
+            <input type="range" id="logo-sz" min="40" max="120" value="82" oninput="applyFonts(); rl('logo-sz','logosz-lbl',v=>v+'px')">
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-label-row">
+              <label>Padding superior</label>
+              <span id="pad-lbl" class="rval">26px</span>
+            </div>
+            <input type="range" id="pad-top" min="8" max="55" value="26" oninput="applyFonts(); rl('pad-top','pad-lbl',v=>v+'px')">
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-label-row">
+              <label>Posición firma</label>
+              <span id="sigmt-lbl" class="rval">6px</span>
+            </div>
+            <input type="range" id="sig-mt" min="0" max="60" value="6" oninput="applyFonts(); rl('sig-mt','sigmt-lbl',v=>v+'px')">
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SHEETS -->
+  <div id="tab-sheets" class="tab-pane">
+    <div style="margin-top:10px;">
+      <div class="btn-row">
+        <button class="btn btn-sheets" onclick="guardarEnSheets()">📊 Guardar en Google Sheets</button>
+        <button class="btn btn-cfg"    onclick="toggleConfig()">⚙️ Configurar URL</button>
+      </div>
+      <div id="sheetStatus"></div>
+      <div id="sheetsConfig">
+        <p>1. Google Sheet → Extensiones → Apps Script → pega el código → Implementar como <strong>Web App</strong> (acceso: <em>Cualquier persona</em>).<br>
+        2. Copia la URL y pégala aquí. &nbsp;<a href="#" onclick="mostrarScript();return false;">Ver código ▸</a></p>
+        <label>URL Web App</label>
+        <input type="text" id="sheetsUrl" placeholder="https://script.google.com/macros/s/…/exec" style="width:100%;margin-top:4px;margin-bottom:8px;">
+        <button class="btn btn-cfg" onclick="guardarUrl()">Guardar URL</button>
+        <pre id="scriptCode">
+function doPost(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const data  = JSON.parse(e.postData.contents);
+  sheet.appendRow([new Date(), data.num, data.nombre, data.rut,
+    data.domicilio, data.presentadoEn, data.fecha]);
+  return ContentService.createTextOutput(JSON.stringify({ok:true}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ A4 ═══ -->
+<div id="preview-area">
+  <div class="a4-page">
+
+    <!-- COPIA 1 -->
+    <div class="cert" id="cert1">
+      <div class="cert-header">
+        <div class="logo-wrap-cert" id="logoWrap1"><div class="cert-logo-ph">SIN<br>LOGO</div></div>
+        <div class="cert-title-center">
+          <span class="cert-title">CERTIFICADO &nbsp; DE &nbsp; RESIDENCIA</span>
+        </div>
+        <div class="cert-num-right"><em>N° &nbsp;<span class="dyn-num">……</span></em></div>
+      </div>
+      <div class="cert-body" id="body1"></div>
+      <div class="cert-bottom">
+        <div class="cert-date" id="dateEl1"></div>
+        <div class="signature-block">
+          <div class="sign-dots">……………………………………………………………</div>
+          <div class="sign-name dyn-firma-nombre">Benjamín Ángel Muñoz Osses</div>
+          <div class="sign-role dyn-firma-cargo">PRESIDENTE</div>
+          <div class="sign-role dyn-firma-directorio">Directorio 2026 – 2029</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cut-line">
+      <span class="cut-scissors">✂</span>
+      <span class="cut-text">✦ CORTAR POR AQUÍ ✦</span>
+    </div>
+
+    <!-- COPIA 2 -->
+    <div class="cert" id="cert2">
+      <div class="cert-header">
+        <div class="logo-wrap-cert" id="logoWrap2"><div class="cert-logo-ph">SIN<br>LOGO</div></div>
+        <div class="cert-title-center">
+          <span class="cert-title">CERTIFICADO &nbsp; DE &nbsp; RESIDENCIA</span>
+        </div>
+        <div class="cert-num-right"><em>N° &nbsp;<span class="dyn-num">……</span></em></div>
+      </div>
+      <div class="cert-body" id="body2"></div>
+      <div class="cert-bottom">
+        <div class="cert-date" id="dateEl2"></div>
+        <div class="signature-block">
+          <div class="sign-dots">……………………………………………………………</div>
+          <div class="sign-name dyn-firma-nombre">Benjamín Ángel Muñoz Osses</div>
+          <div class="sign-role dyn-firma-cargo">PRESIDENTE</div>
+          <div class="sign-role dyn-firma-directorio">Directorio 2026 – 2029</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const all = s => document.querySelectorAll(s);
+
+function showTab(e, id) {
+  all('.tab-pane').forEach(p => p.classList.remove('active'));
+  all('.tab-btn').forEach(b => b.classList.remove('active'));
+  $(id).classList.add('active');
+  e.target.classList.add('active');
+}
+
+/* ══ Construye el cuerpo del certificado ══
+   Cada fila es un <div class="cert-line"> que ocupa el ancho completo
+   y tiene border-bottom → simula la línea del formulario impreso.
+   El texto fluye naturalmente dentro de cada línea.
+   Si el campo está vacío → se muestran puntos (color gris).
+   Si tiene valor → se muestra el valor en negro sin puntos.
+*/
+function escH(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function buildBody(nombre, rut, domicilio, presentadoEn) {
+  /* campo(): si hay valor → negrita subrayada; si vacío → puntos subrayados en gris */
+  function f(val, pts) {
+    return val
+      ? `<span class="f">${escH(val)}</span>`
+      : `<span class="f" style="color:#999;font-weight:400;">${pts}</span>`;
+  }
+  const pN = '…………………………………………………………………………………………………………………………………………';
+  const pR = '………………………………';
+  const pD = '……………………………………………………………………………………………………………………………………………';
+  const pP = '…………………………………………………………………………………………………………………………………';
+
+  /* Todo el texto es UN bloque fluido. Los <span class="f"> llevan el subrayado.
+     No hay divs con border-bottom. El texto fluye como en el original impreso. */
+  return `<em>La Junta de Vecinos N° 7, Cerro Amarillo de Concepción, Personalidad Jurídica N° 378 de 20 de marzo de 1972,</em><br><em>Certifica que don(ña): </em>${f(nombre,pN)}<em>, R.U.T. </em>${f(rut,pR)}<em>, tiene domicilio vigente en: </em>${f(domicilio,pD)}<em>, Comuna de Concepción.</em><br><em>Se extiende el presente certificado, a solicitud del (la) interesado(a) para ser presentado en: </em>${f(presentadoEn,pP)}<em>, como acreditación de su domicilio.</em><br><br><em>Certificado con validez de 30 días, a contar de esta fecha de emisión.</em>`;
+}
+
+function buildDate(dia, mes, anio, ciudad) {
+  const d = dia    || '……';
+  const m = mes    || '………………………';
+  const a = anio   || '………';
+  const c = ciudad || 'Concepción';
+  return `<em>Otorgado en ${escH(c)}, ${escH(d)} de ${escH(m)} de ${escH(a)}.</em>`;
+}
+
+function update() {
+  const nombre       = $('nombre').value.trim();
+  const rut          = $('rut').value.trim();
+  const domicilio    = $('domicilio').value.trim();
+  const presentadoEn = $('presentadoEn').value.trim();
+  const num          = $('numCert').value.trim() || '……';
+  const dia          = $('dia').value.trim();
+  const mes          = $('mes').value;
+  const anio         = $('anio').value.trim();
+
+  const bodyHTML = buildBody(nombre, rut, domicilio, presentadoEn);
+  const ciudad = $('ciudadOtorgado').value.trim();
+  const dateHTML = buildDate(dia, mes, anio, ciudad);
+
+  $('body1').innerHTML = bodyHTML;
+  $('body2').innerHTML = bodyHTML;
+  $('dateEl1').innerHTML = dateHTML;
+  $('dateEl2').innerHTML = dateHTML;
+  all('.dyn-num').forEach(e => e.textContent = num);
+}
+
+['numCert','nombre','rut','domicilio','presentadoEn','dia','mes','anio','ciudadOtorgado']
+  .forEach(id => $(id).addEventListener('input', update));
+
+/* ══ FIRMA DINÁMICA ══ */
+function updateFirma() {
+  const nombre = $('firmaNombre').value || 'Benjamín Ángel Muñoz Osses';
+  const cargo  = $('firmaCargo').value  || 'PRESIDENTE';
+  const dir    = $('firmaDirectorio').value || '2026 – 2029';
+  document.querySelectorAll('.dyn-firma-nombre').forEach(e => e.textContent = nombre);
+  document.querySelectorAll('.dyn-firma-cargo').forEach(e => e.textContent = cargo);
+  document.querySelectorAll('.dyn-firma-directorio').forEach(e => e.textContent = 'Directorio ' + dir);
+}
+['firmaNombre','firmaCargo','firmaDirectorio'].forEach(id => $(id).addEventListener('input', updateFirma));
+
+/* ══ FUENTES ══ */
+function rl(rangeId, lblId, fmt) { $(lblId).textContent = fmt($(rangeId).value); }
+
+function applyFonts() {
+  const ffT = $('ff-titulo').value, fsT = $('fs-titulo').value+'px', lsT = ($('ls-titulo').value/100)+'em';
+  const ffC = $('ff-cuerpo').value, fsC = $('fs-cuerpo').value+'px', lhC = ($('lh-cuerpo').value/10).toFixed(1);
+  const ffM = $('ff-misc').value,   fsM = $('fs-misc').value+'px';
+  const logoSz = $('logo-sz').value+'px', padTop = $('pad-top').value+'px';
+
+  all('.cert-title').forEach(el => { el.style.fontFamily=ffT; el.style.fontSize=fsT; el.style.letterSpacing=lsT; });
+  all('.cert-body').forEach(el => { el.style.fontFamily=ffC; el.style.fontSize=fsC; el.style.lineHeight=lhC; });
+  all('.cert-num-right, .cert-date, .signature-block').forEach(el => { el.style.fontFamily=ffM; el.style.fontSize=fsM; });
+  all('.cert-logo, .cert-logo-ph').forEach(el => { el.style.width=logoSz; el.style.height=logoSz; });
+  all('.logo-wrap-cert').forEach(el => { el.style.width=(parseInt($('logo-sz').value)+8)+'px'; });
+  all('.cert').forEach(el => { el.style.paddingTop=padTop; });
+  const sigMt = $('sig-mt').value+'px';
+  all('.cert-bottom').forEach(el => { el.style.marginTop=sigMt; });
+}
+
+/* ══ LOGO ══ */
+$('logoInput').addEventListener('change', function() {
+  const file=this.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e => {
+    const src=e.target.result, sz=$('logo-sz').value;
+    $('logoPreview').src=src; $('logoPreview').style.display='block';
+    ['logoWrap1','logoWrap2'].forEach(wid => {
+      $(wid).innerHTML=`<img class="cert-logo" src="${src}" alt="Logo" style="width:${sz}px;height:${sz}px;">`;
+    });
+  };
+  reader.readAsDataURL(file);
+});
+
+/* ══ SHEETS ══ */
+function toggleConfig(){ const c=$('sheetsConfig'); c.style.display=c.style.display==='none'?'block':'none'; }
+function guardarUrl(){ localStorage.setItem('sheetsUrl',$('sheetsUrl').value.trim()); $('sheetStatus').textContent='✔ URL guardada.'; }
+function mostrarScript(){ const s=$('scriptCode'); s.style.display=s.style.display==='none'?'block':'none'; }
+window.addEventListener('load',()=>{
+  const s=localStorage.getItem('sheetsUrl'); if(s) $('sheetsUrl').value=s;
+  update(); applyFonts(); updateFirma();
+});
+async function guardarEnSheets(){
+  const url=localStorage.getItem('sheetsUrl')||$('sheetsUrl').value.trim();
+  if(!url){ $('sheetStatus').textContent='⚠ Configura primero la URL.'; $('sheetsConfig').style.display='block'; return; }
+  const payload={ num:$('numCert').value, nombre:$('nombre').value, rut:$('rut').value,
+    domicilio:$('domicilio').value, presentadoEn:$('presentadoEn').value,
+    fecha:`${$('dia').value} de ${$('mes').value} de ${$('anio').value}` };
+  $('sheetStatus').textContent='⏳ Guardando…';
+  try {
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    $('sheetStatus').textContent='✔ Guardado en Google Sheets.';
+  } catch(err){ $('sheetStatus').textContent='✖ Error: '+err.message; }
+}
+/* ══ PDF ══ */
+function guardarPDF() {
+  const nombre = ($('nombre').value.trim() || 'SinNombre').replace(/\s+/g,'_');
+  const rut    = ($('rut').value.trim()    || 'SinRut').replace(/\./g,'').replace(/-/g,'');
+  const dia    = $('dia').value.trim()   || '00';
+  const mes    = $('mes').value          || 'mes';
+  const anio   = $('anio').value.trim()  || '0000';
+  const fname  = `${nombre}_${rut}_${dia}_${mes}_${anio}.pdf`;
+
+  const oldTitle = document.title;
+  document.title = fname.replace('.pdf','');
+  // Forzar diálogo de guardar (no impresora) donde sea posible
+  const style = document.createElement('style');
+  style.id = 'pdf-mode';
+  style.textContent = '@media print { @page { size: A4; margin: 0; } }';
+  document.head.appendChild(style);
+  window.print();
+  setTimeout(() => {
+    document.title = oldTitle;
+    const s = document.getElementById('pdf-mode');
+    if (s) s.remove();
+  }, 3000);
+}
+</script>
+</div><!-- /app -->
+</body>
+</html>
